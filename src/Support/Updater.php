@@ -6,7 +6,7 @@ use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 class Updater
 {
-    private $updateChecker;
+    private $updateChecker = null;
 
     public function register(): void
     {
