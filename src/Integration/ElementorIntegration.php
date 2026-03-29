@@ -11,8 +11,31 @@ class ElementorIntegration
         // Register custom fields for Elementor
         add_action('elementor/init', [$this, 'register_custom_fields']);
         
-        // Registriere Dynamic Tags
+        // Register dynamic tags
         add_action('elementor/dynamic_tags/register', [$this, 'register_dynamic_tags']);
+        
+        // Register custom widgets
+        add_action('elementor/widgets/register', [$this, 'register_widgets']);
+        
+        // Register widget category
+        add_action('elementor/elements/categories_registered', [$this, 'register_widget_category']);
+        
+        // Enqueue widget styles
+        add_action('elementor/frontend/after_enqueue_styles', [$this, 'enqueue_widget_styles']);
+        add_action('elementor/editor/after_enqueue_styles', [$this, 'enqueue_widget_styles']);
+    }
+
+    /**
+     * Enqueue styles for Elementor widgets
+     */
+    public function enqueue_widget_styles(): void
+    {
+        wp_enqueue_style(
+            'eventeule-elementor-widgets',
+            EVENTEULE_URL . 'assets/css/elementor-widgets.css',
+            [],
+            EVENTEULE_VERSION
+        );
     }
 
     public function register_custom_fields(): void
@@ -136,5 +159,37 @@ class ElementorIntegration
         $dynamic_tags_manager->register(new \EventEule\Integration\ElementorTags\EventLocationTag());
         $dynamic_tags_manager->register(new \EventEule\Integration\ElementorTags\EventRegistrationUrlTag());
         $dynamic_tags_manager->register(new \EventEule\Integration\ElementorTags\EventNoteTag());
+    }
+
+    /**
+     * Register widget category for Elementor
+     */
+    public function register_widget_category($elements_manager): void
+    {
+        $elements_manager->add_category(
+            'eventeule',
+            [
+                'title' => __('EventEule', 'eventeule'),
+                'icon' => 'fa fa-calendar-alt',
+            ]
+        );
+    }
+
+    /**
+     * Register custom widgets for Elementor
+     */
+    public function register_widgets($widgets_manager): void
+    {
+        // Load widget classes
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventTitleWidget.php';
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventStartDateWidget.php';
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventEndDateWidget.php';
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventDateBoxWidget.php';
+
+        // Register widgets
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventTitleWidget());
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventStartDateWidget());
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventEndDateWidget());
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventDateBoxWidget());
     }
 }

@@ -1,0 +1,80 @@
+/* EventEule Elementor Widgets Styles */
+
+/* Icon wrapper */
+.eventeule-date-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+}
+
+/* Font icons */
+.eventeule-date-icon i {
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* SVG icons */
+.eventeule-date-icon svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+/* Date wrapper */
+.eventeule-start-date-wrapper,
+.eventeule-end-date-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Event title */
+.eventeule-event-title {
+    margin: 0;
+}
+
+.eventeule-event-title a {
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.3s ease;
+}
+
+.eventeule-event-title a:hover {
+    opacity: 0.7;
+}
+
+/* Empty state */
+.eventeule-no-date {
+    opacity: 0.5;
+    font-style: italic;
+}
+
+/* Date Box Widget */
+.eventeule-date-box-wrapper {
+    display: inline-block;
+}
+
+.eventeule-date-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1 / 1;
+    box-sizing: border-box;
+}
+
+.eventeule-date-day,
+.eventeule-date-month {
+    display: block;
+    text-align: center;
+    line-height: 1;
+}
+
+.eventeule-date-day {
+    font-weight: bold;
+}
+
+.eventeule-date-month {
+    text-transform: uppercase;
+}
