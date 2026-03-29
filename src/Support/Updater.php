@@ -121,25 +121,45 @@ class Updater
 
         // Force update check by clearing the cache
         if ($this->updateChecker) {
-            $this->updateChecker->checkForUpdates();
-            $update = $this->updateChecker->getUpdate();
-            
-            if ($update !== null) {
+            try {
+                $this->updateChecker->checkForUpdates();
+                $update = $this->updateChecker->getUpdate();
+                
+                // Check for API errors
+                $state = $this->updateChecker->getState();
+                if (isset($state->lastRequestApiErrors) && !empty($state->lastRequestApiErrors)) {
+                    $errorMsg = is_array($state->lastRequestApiErrors) 
+                        ? implode(', ', $state->lastRequestApiErrors) 
+                        : $state->lastRequestApiErrors;
+                    
+                    wp_redirect(add_query_arg(
+                        ['update-check' => 'error', 'error-detail' => urlencode($errorMsg)],
+                        admin_url('admin.php?page=eventeule-updater-settings')
+                    ));
+                    exit;
+                }
+                
+                if ($update !== null) {
+                    wp_redirect(add_query_arg(
+                        ['update-check' => 'available', 'version' => $update->version],
+                        admin_url('admin.php?page=eventeule-updater-settings')
+                    ));
+                } else {
+                    wp_redirect(add_query_arg(
+                        'update-check',
+                        'none',
+                        admin_url('admin.php?page=eventeule-updater-settings')
+                    ));
+                }
+            } catch (\Exception $e) {
                 wp_redirect(add_query_arg(
-                    ['update-check' => 'available', 'version' => $update->version],
-                    admin_url('admin.php?page=eventeule-updater-settings')
-                ));
-            } else {
-                wp_redirect(add_query_arg(
-                    'update-check',
-                    'none',
+                    ['update-check' => 'error', 'error-detail' => urlencode($e->getMessage())],
                     admin_url('admin.php?page=eventeule-updater-settings')
                 ));
             }
         } else {
             wp_redirect(add_query_arg(
-                'update-check',
-                'error',
+                ['update-check' => 'error', 'error-detail' => urlencode('Update checker not initialized')],
                 admin_url('admin.php?page=eventeule-updater-settings')
             ));
         }

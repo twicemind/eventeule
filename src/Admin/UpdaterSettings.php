@@ -127,10 +127,26 @@ class UpdaterSettings
                     'info'
                 );
             } elseif ($check_result === 'error') {
+                $error_detail = isset($_GET['error-detail']) ? sanitize_text_field($_GET['error-detail']) : '';
+                $error_msg = __('Error checking for updates.', 'eventeule');
+                
+                if (!empty($error_detail)) {
+                    // Check for common error types
+                    if (stripos($error_detail, 'rate limit') !== false) {
+                        $error_msg .= ' ' . __('GitHub API rate limit exceeded. Please wait an hour or configure a GitHub token below to increase the limit.', 'eventeule');
+                    } elseif (stripos($error_detail, 'could not resolve host') !== false || stripos($error_detail, 'connection') !== false) {
+                        $error_msg .= ' ' . __('Could not connect to GitHub. Please check your internet connection.', 'eventeule');
+                    } else {
+                        $error_msg .= ' ' . sprintf(__('Details: %s', 'eventeule'), esc_html($error_detail));
+                    }
+                } else {
+                    $error_msg .= ' ' . __('Make sure the GitHub token is correctly configured.', 'eventeule');
+                }
+                
                 add_settings_error(
                     'eventeule_updater_messages',
                     'eventeule_updater_message',
-                    __('Error checking for updates. Make sure the GitHub token is correctly configured.', 'eventeule'),
+                    $error_msg,
                     'error'
                 );
             }
