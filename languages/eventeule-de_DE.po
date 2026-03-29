@@ -1,0 +1,271 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: EventEule 0.1.0\n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Events"
+msgstr "Veranstaltungen"
+
+msgid "Event"
+msgstr "Veranstaltung"
+
+msgid "Add New"
+msgstr "Neu hinzufügen"
+
+msgid "Add New Event"
+msgstr "Neue Veranstaltung hinzufügen"
+
+msgid "Edit Event"
+msgstr "Veranstaltung bearbeiten"
+
+msgid "New Event"
+msgstr "Neue Veranstaltung"
+
+msgid "View Event"
+msgstr "Veranstaltung ansehen"
+
+msgid "Search Events"
+msgstr "Veranstaltungen durchsuchen"
+
+msgid "No events found"
+msgstr "Keine Veranstaltungen gefunden"
+
+msgid "No events found in Trash"
+msgstr "Keine Veranstaltungen im Papierkorb gefunden"
+
+msgid "Event Categories"
+msgstr "Veranstaltungskategorien"
+
+msgid "Event Category"
+msgstr "Veranstaltungskategorie"
+
+msgid "Search Event Categories"
+msgstr "Veranstaltungskategorien durchsuchen"
+
+msgid "All Event Categories"
+msgstr "Alle Veranstaltungskategorien"
+
+msgid "Edit Event Category"
+msgstr "Veranstaltungskategorie bearbeiten"
+
+msgid "Update Event Category"
+msgstr "Veranstaltungskategorie aktualisieren"
+
+msgid "Add New Event Category"
+msgstr "Neue Veranstaltungskategorie hinzufügen"
+
+msgid "New Event Category Name"
+msgstr "Name der neuen Veranstaltungskategorie"
+
+msgid "Categories"
+msgstr "Kategorien"
+
+msgid "Event Details"
+msgstr "Veranstaltungsdetails"
+
+msgid "Start date"
+msgstr "Startdatum"
+
+msgid "End date"
+msgstr "Enddatum"
+
+msgid "Start time"
+msgstr "Startzeit"
+
+msgid "End time"
+msgstr "Endzeit"
+
+msgid "Location"
+msgstr "Ort"
+
+msgid "Registration URL"
+msgstr "Anmeldelink"
+
+msgid "Note / Additional information"
+msgstr "Hinweis / Zusatzinfo"
+
+msgid "Featured"
+msgstr "Hervorgehoben"
+
+msgid "Highlight this event"
+msgstr "Diese Veranstaltung hervorheben"
+
+msgid "Start Date"
+msgstr "Startdatum"
+
+msgid "There are currently no events available."
+msgstr "Derzeit sind keine Veranstaltungen vorhanden."
+
+msgid "EventEule Dashboard"
+msgstr "EventEule Übersicht"
+
+msgid "Total Events"
+msgstr "Veranstaltungen gesamt"
+
+msgid "Upcoming Events"
+msgstr "Kommende Veranstaltungen"
+
+msgid "Past Events"
+msgstr "Vergangene Veranstaltungen"
+
+msgid "Featured Events"
+msgstr "Hervorgehobene Veranstaltungen"
+
+msgid "Quick Actions"
+msgstr "Schnellzugriff"
+
+msgid "All Events"
+msgstr "Alle Veranstaltungen"
+
+msgid "Manage Categories"
+msgstr "Kategorien verwalten"
+
+msgid "No upcoming events found."
+msgstr "Keine kommenden Veranstaltungen gefunden."
+
+msgid "Edit"
+msgstr "Bearbeiten"
+
+msgid "View"
+msgstr "Ansehen"
+
+msgid "Event Management Made Easy"
+msgstr "Veranstaltungsmanagement leicht gemacht"
+
+msgid "Overview"
+msgstr "Übersicht"
+
+msgid "Calendar"
+msgstr "Kalender"
+
+msgid "Widget Styling"
+msgstr "Widget-Design"
+
+msgid "Settings saved successfully!"
+msgstr "Einstellungen erfolgreich gespeichert!"
+
+msgid "Create Your First Event"
+msgstr "Erstelle deine erste Veranstaltung"
+
+msgid "Calendar View"
+msgstr "Kalenderansicht"
+
+msgid "No events found."
+msgstr "Keine Veranstaltungen gefunden."
+
+msgid "Widget Color Settings"
+msgstr "Widget-Farbeinstellungen"
+
+msgid "Customize the colors for EventEule widgets on your website."
+msgstr "Passe die Farben für EventEule-Widgets auf deiner Website an."
+
+msgid "Primary Color"
+msgstr "Primärfarbe"
+
+msgid "Main color for buttons and highlights"
+msgstr "Hauptfarbe für Buttons und Hervorhebungen"
+
+msgid "Secondary Color"
+msgstr "Sekundärfarbe"
+
+msgid "Hover states and accents"
+msgstr "Hover-Zustände und Akzente"
+
+msgid "Accent Color"
+msgstr "Akzentfarbe"
+
+msgid "Featured badges and special elements"
+msgstr "Hervorgehoben-Badges und spezielle Elemente"
+
+msgid "Text Color"
+msgstr "Textfarbe"
+
+msgid "Main text color"
+msgstr "Haupttextfarbe"
+
+msgid "Background Color"
+msgstr "Hintergrundfarbe"
+
+msgid "Widget background color"
+msgstr "Widget-Hintergrundfarbe"
+
+msgid "Border Color"
+msgstr "Rahmenfarbe"
+
+msgid "Border and separator lines"
+msgstr "Rahmen- und Trennlinien"
+
+msgid "Save Settings"
+msgstr "Einstellungen speichern"
+
+msgid "EventEule"
+msgstr "EventEule"
+
+msgid "Event Start Date"
+msgstr "Startdatum der Veranstaltung"
+
+msgid "Event End Date"
+msgstr "Enddatum der Veranstaltung"
+
+msgid "Event Start Time"
+msgstr "Startzeit der Veranstaltung"
+
+msgid "Event End Time"
+msgstr "Endzeit der Veranstaltung"
+
+msgid "Event Location"
+msgstr "Veranstaltungsort"
+
+msgid "Event Registration URL"
+msgstr "Anmeldelink der Veranstaltung"
+
+msgid "Event Note"
+msgstr "Hinweis zur Veranstaltung"
+
+msgid "Featured Event"
+msgstr "Hervorgehobene Veranstaltung"
+
+msgid "Date Format"
+msgstr "Datumsformat"
+
+msgid "DD.MM.YYYY (e.g. 31.12.2024)"
+msgstr "TT.MM.JJJJ (z.B. 31.12.2024)"
+
+msgid "MM/DD/YYYY (e.g. 12/31/2024)"
+msgstr "MM/TT/JJJJ (z.B. 12/31/2024)"
+
+msgid "YYYY-MM-DD (e.g. 2024-12-31)"
+msgstr "JJJJ-MM-TT (z.B. 2024-12-31)"
+
+msgid "Full (e.g. December 31, 2024)"
+msgstr "Vollständig (z.B. 31. Dezember 2024)"
+
+msgid "European (e.g. 31. Dezember 2024)"
+msgstr "Europäisch (z.B. 31. Dezember 2024)"
+
+msgid "Full with weekday (e.g. Montag, 31. Dezember 2024)"
+msgstr "Mit Wochentag (z.B. Montag, 31. Dezember 2024)"
+
+msgid "Date:"
+msgstr "Datum:"
+
+msgid "Time:"
+msgstr "Zeit:"
+
+msgid "Location:"
+msgstr "Ort:"
+
+msgid "Note:"
+msgstr "Hinweis:"
+
+msgid "Learn more"
+msgstr "Mehr erfahren"
+
+msgid "Register now"
+msgstr "Zur Anmeldung"
+
+msgid "The plugin has been loaded successfully."
+msgstr "Das Plugin wurde erfolgreich geladen."

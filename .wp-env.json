@@ -1,0 +1,14 @@
+{
+  "core": "WordPress/WordPress",
+  "plugins": [
+    ".",
+    "https://downloads.wordpress.org/plugin/elementor.latest-stable.zip"
+  ],
+  "themes": [
+    "https://downloads.wordpress.org/theme/hello-elementor.latest-stable.zip"
+  ],
+  "config": {
+    "WP_DEBUG": true,
+    "SCRIPT_DEBUG": true
+  }
+}
