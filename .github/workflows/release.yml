@@ -13,11 +13,22 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Get version from tag
         id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
 
       - name: Install dependencies
         run: |
@@ -49,17 +60,28 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.ref }}
+          name: EventEule v${{ steps.get_version.outputs.VERSION }}
           files: ./dist/eventeule-${{ steps.get_version.outputs.VERSION }}.zip
           body: |
-            Release version ${{ steps.get_version.outputs.VERSION }}
+            ## EventEule v${{ steps.get_version.outputs.VERSION }}
             
-            ## Installation
+            WordPress Event Plugin for managing events, appointments and activities.
+            
+            ### 📦 Installation
             1. Download `eventeule-${{ steps.get_version.outputs.VERSION }}.zip`
             2. In WordPress Admin: Plugins → Add New → Upload Plugin
             3. Choose the downloaded file and click Install Now
             4. Activate the plugin
             
-            ## Update
-            If you have the plugin already installed, you can update it directly from WordPress Admin.
+            ### 🔄 Update
+            If you have the plugin already installed, WordPress will automatically detect the update.
+            Go to Dashboard → Updates and click "Update Now".
+            
+            ### 📖 Documentation
+            - [Installation Guide](https://github.com/twicemind/eventeule/blob/main/docs/INSTALLATION.md)
+            - [User Quick Start](https://github.com/twicemind/eventeule/blob/main/docs/QUICKSTART_USER.md)
+            - [Full Documentation](https://github.com/twicemind/eventeule/tree/main/docs)
           draft: false
+          prerelease: false
           prerelease: false
