@@ -10,5 +10,6 @@
   "config": {
     "WP_DEBUG": true,
     "SCRIPT_DEBUG": true
-  }
+  },
+  "testsEnvironment": false
 }

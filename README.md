@@ -49,7 +49,30 @@ cp config-local.example.php config-local.php
 npm run wp:start
 ```
 
-📖 **Full Guide:** [LOCAL_SETUP.md](docs/LOCAL_SETUP.md)
+### Import Production Data (Optional)
+
+**🎯 Recommended: All-in-One WP Migration Plugin**
+
+The easiest way to import production data into your local environment:
+
+```bash
+# 1. Install the import plugin
+npm run import:setup
+
+# 2. Export from production site
+#    - Install "All-in-One WP Migration" on production
+#    - Export to File (.wpress)
+#    - Download the file
+
+# 3. Import via WordPress Admin
+#    - Open: http://localhost:8888/wp-admin
+#    - Go to: All-in-One WP Migration → Import
+#    - Upload your .wpress file
+#    - Done! ✨
+```
+
+📖 **Full Import Guide:** [IMPORT_PRODUCTION_DATA.md](docs/IMPORT_PRODUCTION_DATA.md)  
+📖 **Setup Guide:** [LOCAL_SETUP.md](docs/LOCAL_SETUP.md)
 
 ## Security
 

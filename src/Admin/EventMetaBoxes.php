@@ -37,6 +37,8 @@ class EventMetaBoxes
         $endTime   = get_post_meta($post->ID, '_eventeule_end_time', true);
         $location  = get_post_meta($post->ID, '_eventeule_location', true);
         $url       = get_post_meta($post->ID, '_eventeule_registration_url', true);
+        $shortDescription = get_post_meta($post->ID, '_eventeule_short_description', true);
+        $price     = get_post_meta($post->ID, '_eventeule_price', true);
         $note      = get_post_meta($post->ID, '_eventeule_note', true);
         $featured  = get_post_meta($post->ID, '_eventeule_featured', true);
         ?>
@@ -93,6 +95,32 @@ class EventMetaBoxes
                     </th>
                     <td>
                         <input type="url" class="regular-text" id="eventeule_registration_url" name="eventeule_registration_url" value="<?php echo esc_attr($url); ?>" />
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row">
+                        <label for="eventeule_short_description"><?php esc_html_e('Short Description', 'eventeule'); ?></label>
+                    </th>
+                    <td>
+                        <textarea
+                            id="eventeule_short_description"
+                            name="eventeule_short_description"
+                            rows="2"
+                            class="large-text"
+                            placeholder="<?php esc_attr_e('Brief description for event listings (max. 150 characters recommended)', 'eventeule'); ?>"
+                        ><?php echo esc_textarea($shortDescription); ?></textarea>
+                        <p class="description"><?php esc_html_e('This short text will be displayed in event lists instead of the full excerpt.', 'eventeule'); ?></p>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row">
+                        <label for="eventeule_price"><?php esc_html_e('Price', 'eventeule'); ?></label>
+                    </th>
+                    <td>
+                        <input type="text" class="regular-text" id="eventeule_price" name="eventeule_price" value="<?php echo esc_attr($price); ?>" placeholder="<?php esc_attr_e('e.g. $25.00 or Free', 'eventeule'); ?>" />
+                        <p class="description"><?php esc_html_e('Event ticket price or cost (e.g. "$25.00", "€15", or "Free").', 'eventeule'); ?></p>
                     </td>
                 </tr>
 
@@ -160,6 +188,8 @@ class EventMetaBoxes
         $this->save_text_meta($postId, '_eventeule_end_time', 'eventeule_end_time');
         $this->save_text_meta($postId, '_eventeule_location', 'eventeule_location');
         $this->save_url_meta($postId, '_eventeule_registration_url', 'eventeule_registration_url');
+        $this->save_textarea_meta($postId, '_eventeule_short_description', 'eventeule_short_description');
+        $this->save_text_meta($postId, '_eventeule_price', 'eventeule_price');
         $this->save_textarea_meta($postId, '_eventeule_note', 'eventeule_note');
         $this->save_checkbox_meta($postId, '_eventeule_featured', 'eventeule_featured');
     }

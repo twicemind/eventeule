@@ -103,6 +103,18 @@ class ElementorIntegration
                     'type' => 'url',
                 ],
                 [
+                    'key' => 'field_eventeule_short_description',
+                    'label' => __('Event Short Description', 'eventeule'),
+                    'name' => '_eventeule_short_description',
+                    'type' => 'textarea',
+                ],
+                [
+                    'key' => 'field_eventeule_price',
+                    'label' => __('Event Price', 'eventeule'),
+                    'name' => '_eventeule_price',
+                    'type' => 'text',
+                ],
+                [
                     'key' => 'field_eventeule_note',
                     'label' => __('Event Note', 'eventeule'),
                     'name' => '_eventeule_note',
@@ -185,11 +197,15 @@ class ElementorIntegration
         require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventStartDateWidget.php';
         require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventEndDateWidget.php';
         require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventDateBoxWidget.php';
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventListWidget.php';
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventListCardWidget.php';
 
         // Register widgets
         $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventTitleWidget());
         $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventStartDateWidget());
         $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventEndDateWidget());
         $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventDateBoxWidget());
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventListWidget());
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventListCardWidget());
     }
 }

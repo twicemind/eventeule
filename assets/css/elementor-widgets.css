@@ -1,4 +1,4 @@
-/* EventEule Elementor Widgets Styles */
+/* EventEule Elementor Widgets Styles - Updated: 2026-03-29 */
 
 /* Icon wrapper */
 .eventeule-date-icon {
@@ -77,4 +77,601 @@
 
 .eventeule-date-month {
     text-transform: uppercase;
+}
+
+/* Event List Widget */
+.eventeule-event-list {
+    display: grid;
+    width: 100%;
+}
+
+.eventeule-event-item {
+    display: flex;
+    overflow: visible;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+}
+
+/* Vertical Layout (Card Style) */
+.eventeule-layout-vertical .eventeule-event-item {
+    flex-direction: column;
+    gap: 0;
+    overflow: hidden;
+}
+
+/* Horizontal Layout */
+.eventeule-layout-horizontal .eventeule-event-item {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.eventeule-layout-horizontal .eventeule-event-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.eventeule-layout-vertical .eventeule-event-date-box-wrapper {
+    flex-shrink: 0;
+}
+
+.eventeule-layout-vertical .eventeule-event-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+/* Horizontal Layout (Date + Content) */
+.eventeule-layout-horizontal .eventeule-event-item {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 25px;
+}
+
+.eventeule-layout-horizontal .eventeule-event-content-wrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    flex: 1;
+    min-width: 0;
+    align-items: flex-start;
+    order: 1;
+}
+
+.eventeule-layout-horizontal .eventeule-event-image {
+    flex-shrink: 0;
+    width: 150px;
+    height: 150px;
+    order: 1;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.eventeule-layout-horizontal .eventeule-event-content {
+    flex: 1;
+    min-width: 0;
+    order: 2;
+}
+
+/* Date box at the right side */
+.eventeule-layout-horizontal .eventeule-event-date-box-wrapper.eventeule-horizontal-date {
+    flex-shrink: 0;
+    align-self: flex-start;
+    order: 2;
+    margin-left: auto;
+}
+
+.eventeule-layout-vertical .eventeule-event-item:hover {
+    transform: translateY(-5px);
+}
+
+.eventeule-layout-horizontal .eventeule-event-item:hover {
+    transform: translateY(-2px);
+}
+
+/* Date Box - Modern Design */
+.eventeule-event-date-box-wrapper {
+    flex-shrink: 0;
+}
+
+.eventeule-event-date-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1 / 1;
+    box-sizing: border-box;
+    padding: 10px;
+    text-align: center;
+}
+
+/* Horizontal layout date box styles */
+.eventeule-layout-horizontal .eventeule-event-date-box-wrapper.eventeule-horizontal-date {
+    margin-top: 5px;
+    width: 110px;
+    height: 110px;
+}
+
+.eventeule-layout-horizontal .eventeule-event-date-box {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    height: 100%;
+}
+
+.eventeule-layout-horizontal .eventeule-event-date-day {
+    font-size: 38px;
+    font-weight: 700;
+}
+
+.eventeule-layout-horizontal .eventeule-event-date-month {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Date Box Overlay Style */
+.eventeule-event-date-box-wrapper.eventeule-date-overlay {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 10;
+    pointer-events: none;
+    animation: fadeInScale 0.4s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.eventeule-date-overlay .eventeule-event-date-box {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Add hover effect for overlay date box */
+.eventeule-event-item:hover .eventeule-date-overlay .eventeule-event-date-box {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+    transition: all 0.3s ease;
+}
+
+.eventeule-event-date-day,
+.eventeule-event-date-month {
+    display: block;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.eventeule-event-date-day {
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.eventeule-event-date-month {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.9;
+    font-size: 0.85em;
+}
+
+/* Content Wrapper - Allows flexible layout */
+.eventeule-event-content-wrapper {
+    min-width: 0; /* Allow content to shrink */
+}
+
+.eventeule-layout-vertical .eventeule-event-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.eventeule-event-image {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.eventeule-layout-vertical .eventeule-event-image {
+    width: 100%;
+    height: auto;
+}
+
+.eventeule-event-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.eventeule-event-item:hover .eventeule-event-image img {
+    transform: scale(1.05);
+}
+
+.eventeule-event-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+}
+
+.eventeule-event-title {
+    margin: 0;
+    line-height: 1.3;
+    font-size: 26px;
+    font-weight: 600;
+}
+
+.eventeule-event-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.eventeule-event-title a:hover {
+    opacity: 0.8;
+}
+
+.eventeule-event-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.eventeule-event-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.eventeule-event-meta .eventeule-meta-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    display: inline-block;
+    position: relative;
+}
+
+.eventeule-event-meta .eventeule-meta-icon::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Meta icon SVGs using data URIs */
+.eventeule-event-location .eventeule-meta-icon::before {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ef4444"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>');
+}
+
+.eventeule-event-date .eventeule-meta-icon::before {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%233b82f6"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/></svg>');
+}
+
+.eventeule-event-time .eventeule-meta-icon::before {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%238b5cf6"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>');
+}
+
+.eventeule-event-price .eventeule-meta-icon::before {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2310b981"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>');
+}
+
+.eventeule-event-meta svg,
+.eventeule-event-meta .dashicons {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+/* Meta icon colors - kept for backwards compatibility */
+.eventeule-event-location {
+    color: #ef4444;
+}
+
+.eventeule-event-date {
+    color: #3b82f6;
+}
+
+.eventeule-event-time {
+    color: #8b5cf6;
+}
+
+.eventeule-event-price {
+    color: #10b981;
+}
+
+.eventeule-event-excerpt {
+    line-height: 1.6;
+    color: #6b7280;
+    font-size: 15px;
+}
+
+.eventeule-event-read-more {
+    display: inline-block;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    text-align: center;
+    cursor: pointer;
+    align-self: flex-start;
+    padding: 10px 24px;
+    border: 2px solid #6366f1;
+    border-radius: 6px;
+    color: #6366f1;
+    font-weight: 500;
+    font-size: 15px;
+    background: transparent;
+    margin-top: auto;
+}
+
+.eventeule-event-read-more:hover {
+    text-decoration: none;
+    background: #6366f1;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.eventeule-no-events {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+    font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .eventeule-event-item {
+        flex-direction: column !important;
+    }
+    
+    .eventeule-layout-horizontal .eventeule-event-content-wrapper {
+        flex-direction: column !important;
+    }
+    
+    .eventeule-layout-horizontal .eventeule-event-image {
+        width: 100% !important;
+        height: 200px !important;
+    }
+    
+    .eventeule-event-date-box-wrapper {
+        align-self: flex-start;
+    }
+}
+
+/* Additional styling improvements */
+.eventeule-event-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.eventeule-event-item {
+    background: #fff;
+    overflow: hidden;
+}
+
+/* Hover effects */
+.eventeule-event-item:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Better spacing for horizontal layout */
+.eventeule-layout-horizontal .eventeule-event-title {
+    margin-top: 0;
+}
+
+/* ======================================= */
+/* Event List Card Widget */
+/* ======================================= */
+
+.eventeule-event-list-card {
+    display: grid;
+    width: 100%;
+}
+
+.eventeule-event-card {
+    display: flex;
+    gap: 20px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    padding: 20px;
+}
+
+.eventeule-event-card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Card Image */
+.eventeule-event-card-image {
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.eventeule-event-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.eventeule-event-card:hover .eventeule-event-card-image img {
+    transform: scale(1.05);
+}
+
+/* Card Content */
+.eventeule-event-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+/* Category Badge */
+.eventeule-event-category {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #6366f1;
+    color: #fff;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    align-self: flex-start;
+}
+
+/* Card Title */
+.eventeule-event-card-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.eventeule-event-card-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.eventeule-event-card-title a:hover {
+    color: #6366f1;
+}
+
+/* Card Meta */
+.eventeule-event-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.eventeule-event-card-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.eventeule-event-card-meta svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+.eventeule-meta-location {
+    color: #ef4444;
+}
+
+.eventeule-meta-date {
+    color: #3b82f6;
+}
+
+.eventeule-meta-time {
+    color: #8b5cf6;
+}
+
+.eventeule-meta-price {
+    color: #10b981;
+    font-weight: 600;
+}
+
+/* Card Footer */
+.eventeule-event-card-footer {
+    margin-top: auto;
+}
+
+.eventeule-event-card-button {
+    display: inline-block;
+    padding: 12px 28px;
+    background: #6366f1;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.eventeule-event-card-button:hover {
+    background: #4f46e5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* No Events Message */
+.eventeule-no-events {
+    text-align: center;
+    padding: 60px 20px;
+    color: #9ca3af;
+    font-size: 16px;
+    font-style: italic;
+}
+
+/* Responsive - Card Layout */
+@media (max-width: 768px) {
+    .eventeule-event-card {
+        flex-direction: column;
+    }
+    
+    .eventeule-event-card-image {
+        width: 100% !important;
+        height: 200px !important;
+    }
+    
+    .eventeule-event-card-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+}
+
+/* ======================================= */
+/* Responsive Visibility Classes */
+/* ======================================= */
+
+/* Desktop (1025px and above) */
+@media (min-width: 1025px) {
+    .eventeule-hide-desktop {
+        display: none !important;
+    }
+}
+
+/* Tablet (768px to 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .eventeule-hide-tablet {
+        display: none !important;
+    }
+}
+
+/* Mobile (below 768px) */
+@media (max-width: 767px) {
+    .eventeule-hide-mobile {
+        display: none !important;
+    }
 }

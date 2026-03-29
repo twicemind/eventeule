@@ -42,6 +42,19 @@ yarn-error.log*
 *.backup
 *~
 
+# Import directory - Keep structure but ignore content
+import/duplicator/*.zip
+import/duplicator/*.daf
+import/duplicator/*.sql
+import/duplicator/installer.php
+import/duplicator/installer-backup.php
+import/duplicator/installer-log.txt
+import/duplicator/dup-installer/
+import/**/*.wpress
+import/**/*.sql
+import/**/*.xml
+import/**/*.zip
+
 # Commit your application's lock file https://getcomposer.org/doc/01-basic-usage.md#commit-your-composer-lock-file-to-version-control
 # You may choose to ignore a library lock file http://getcomposer.org/doc/02-libraries.md#lock-file
 # composer.lock
