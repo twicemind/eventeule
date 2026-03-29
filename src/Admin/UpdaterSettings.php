@@ -16,7 +16,7 @@ class UpdaterSettings
     public function add_settings_page(): void
     {
         add_submenu_page(
-            'edit.php?post_type=eventeule_event',
+            'eventeule',  // Parent slug from Admin.php
             __('Update Settings', 'eventeule'),
             __('Update Settings', 'eventeule'),
             'manage_options',

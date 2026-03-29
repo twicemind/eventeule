@@ -127,20 +127,20 @@ class Updater
             if ($update !== null) {
                 wp_redirect(add_query_arg(
                     ['update-check' => 'available', 'version' => $update->version],
-                    admin_url('edit.php?post_type=eventeule_event&page=eventeule-updater-settings')
+                    admin_url('admin.php?page=eventeule-updater-settings')
                 ));
             } else {
                 wp_redirect(add_query_arg(
                     'update-check',
                     'none',
-                    admin_url('edit.php?post_type=eventeule_event&page=eventeule-updater-settings')
+                    admin_url('admin.php?page=eventeule-updater-settings')
                 ));
             }
         } else {
             wp_redirect(add_query_arg(
                 'update-check',
                 'error',
-                admin_url('edit.php?post_type=eventeule_event&page=eventeule-updater-settings')
+                admin_url('admin.php?page=eventeule-updater-settings')
             ));
         }
         

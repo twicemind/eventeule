@@ -160,7 +160,11 @@ git add -A
 # Create commit
 git commit -m "$COMMIT_MSG"
 
+# Create tag AFTER commit
+git tag -a "v${NEW_VERSION}" -m "Release version ${NEW_VERSION}"
+
 echo -e "${GREEN}✓ Commit created${NC}"
+echo -e "${GREEN}✓ Tag v${NEW_VERSION} created${NC}"
 
 # Step 7: Push to GitHub
 echo -e "${BLUE}[7/7] Push to GitHub...${NC}"

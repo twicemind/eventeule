@@ -135,8 +135,7 @@ if [ "$AUTO_MODE" = false ]; then
     echo -e "  2. Push to GitHub: ${GREEN}git push && git push --tags${NC}"
     echo -e "  3. GitHub Actions will automatically create a release"
 else
-    # In auto mode, just create the tag
-    git tag -a "v${NEW_VERSION}" -m "Release version ${NEW_VERSION}"
+    # In auto mode, DON'T create tag - release.sh will do it after commit
     echo -e "${GREEN}✓ Version bumped to ${NEW_VERSION}${NC}"
-    echo -e "${GREEN}✓ Git tag v${NEW_VERSION} created${NC}"
+    echo -e "${YELLOW}(Tag will be created by release.sh after commit)${NC}"
 fi
