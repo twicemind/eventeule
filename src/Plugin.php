@@ -5,6 +5,7 @@ namespace EventEule;
 use EventEule\Admin\Admin;
 use EventEule\Admin\EventAdminColumns;
 use EventEule\Admin\EventMetaBoxes;
+use EventEule\Admin\UpdaterSettings;
 use EventEule\Api\Api;
 use EventEule\Domain\EventCategoryTaxonomy;
 use EventEule\Domain\EventPostType;
@@ -61,6 +62,9 @@ class Plugin
 
             $adminColumns = new EventAdminColumns();
             $adminColumns->register();
+
+            $updaterSettings = new UpdaterSettings();
+            $updaterSettings->register();
         }
     }
 

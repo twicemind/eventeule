@@ -11,6 +11,7 @@ class Updater
     public function register(): void
     {
         add_action('plugins_loaded', [$this, 'init_update_checker']);
+        add_action('admin_post_eventeule_check_updates', [$this, 'handle_manual_update_check']);
     }
 
     public function init_update_checker(): void
@@ -29,7 +30,7 @@ class Updater
             'eventeule'
         );
 
-        // GitHub token from environment variable or local config
+        // GitHub token from environment variable or local config (optional for public repos)
         $githubToken = $this->get_github_token();
         
         if (!empty($githubToken)) {
@@ -39,26 +40,40 @@ class Updater
         // Use release assets instead of source code
         $this->updateChecker->getVcsApi()->enableReleaseAssets();
         
+        // Set branch for updates (main branch)
+        $this->updateChecker->setBranch('main');
+        
         // Filter for asset selection (choose the ZIP file)
         add_filter('puc_request_info_result-eventeule', [$this, 'filter_plugin_info'], 10, 2);
+        
+        // Add debug logging if WP_DEBUG is enabled
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            add_action('puc_check_now-eventeule', [$this, 'log_update_check'], 10, 1);
+        }
     }
 
     /**
-     * Get GitHub token from environment variable or local config
+     * Get GitHub token from various sources
      */
     private function get_github_token(): string
     {
-        // 1. Check environment variable (e.g. when .env is loaded)
+        // 1. Check WordPress option (from admin settings)
+        $token = get_option('eventeule_github_token', '');
+        if (!empty($token)) {
+            return $token;
+        }
+
+        // 2. Check environment variable (e.g. when .env is loaded)
         if (defined('GITHUB_ACCESS_TOKEN') && !empty(GITHUB_ACCESS_TOKEN)) {
             return GITHUB_ACCESS_TOKEN;
         }
 
-        // 2. Check $_ENV (when server-level environment variables are set)
+        // 3. Check $_ENV (when server-level environment variables are set)
         if (isset($_ENV['GITHUB_ACCESS_TOKEN']) && !empty($_ENV['GITHUB_ACCESS_TOKEN'])) {
             return $_ENV['GITHUB_ACCESS_TOKEN'];
         }
 
-        // 3. Check local config file (not committed)
+        // 4. Check local config file (not committed)
         $configFile = EVENTEULE_PATH . 'config-local.php';
         if (file_exists($configFile)) {
             $config = include $configFile;
@@ -67,7 +82,7 @@ class Updater
             }
         }
 
-        // 4. No token found - only works for public repositories
+        // 5. No token found - only works for public repositories
         return '';
     }
 
@@ -91,5 +106,61 @@ class Updater
         }
 
         return $pluginInfo;
+    }
+
+    /**
+     * Handle manual update check from admin
+     */
+    public function handle_manual_update_check(): void
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have permission to perform this action.', 'eventeule'));
+        }
+
+        check_admin_referer('eventeule_check_updates', 'eventeule_nonce');
+
+        // Force update check by clearing the cache
+        if ($this->updateChecker) {
+            $this->updateChecker->checkForUpdates();
+            $update = $this->updateChecker->getUpdate();
+            
+            if ($update !== null) {
+                wp_redirect(add_query_arg(
+                    ['update-check' => 'available', 'version' => $update->version],
+                    admin_url('edit.php?post_type=eventeule_event&page=eventeule-updater-settings')
+                ));
+            } else {
+                wp_redirect(add_query_arg(
+                    'update-check',
+                    'none',
+                    admin_url('edit.php?post_type=eventeule_event&page=eventeule-updater-settings')
+                ));
+            }
+        } else {
+            wp_redirect(add_query_arg(
+                'update-check',
+                'error',
+                admin_url('edit.php?post_type=eventeule_event&page=eventeule-updater-settings')
+            ));
+        }
+        
+        exit;
+    }
+
+    /**
+     * Log update checks for debugging
+     */
+    public function log_update_check($checkerInstance): void
+    {
+        error_log('EventEule: Checking for updates from GitHub...');
+        
+        if ($this->updateChecker) {
+            $update = $this->updateChecker->getUpdate();
+            if ($update) {
+                error_log('EventEule: Update available - Version ' . $update->version);
+            } else {
+                error_log('EventEule: No updates available. Current version: ' . EVENTEULE_VERSION);
+            }
+        }
     }
 }
