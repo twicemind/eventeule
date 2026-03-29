@@ -17,6 +17,9 @@ class Updater
     public function init_update_checker(): void
     {
         if (!class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory')) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('EventEule: Plugin Update Checker library not found. Run: composer install');
+            }
             return;
         }
 
@@ -119,6 +122,11 @@ class Updater
 
         check_admin_referer('eventeule_check_updates', 'eventeule_nonce');
 
+        // Ensure update checker is initialized
+        if ($this->updateChecker === null) {
+            $this->init_update_checker();
+        }
+
         // Force update check by clearing the cache
         if ($this->updateChecker) {
             try {
@@ -158,8 +166,13 @@ class Updater
                 ));
             }
         } else {
+            // Check if it's because the library is missing
+            $error_detail = class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory') 
+                ? 'Update checker not initialized' 
+                : 'Plugin Update Checker library not found. Please run: composer install';
+                
             wp_redirect(add_query_arg(
-                ['update-check' => 'error', 'error-detail' => urlencode('Update checker not initialized')],
+                ['update-check' => 'error', 'error-detail' => urlencode($error_detail)],
                 admin_url('admin.php?page=eventeule-updater-settings')
             ));
         }
