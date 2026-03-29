@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout code
@@ -28,7 +30,7 @@ jobs:
           mkdir -p dist
           mkdir -p eventeule
           
-          # Kopiere nur die notwendigen Dateien/Ordner für WordPress
+          # Copy only necessary files/folders for WordPress
           cp EventEule.php eventeule/
           cp uninstall.php eventeule/
           cp LICENSE eventeule/
@@ -39,19 +41,15 @@ jobs:
           cp -r templates eventeule/
           cp -r vendor eventeule/
           
-          # Erstelle ZIP aus dem eventeule/ Ordner
+          # Create ZIP from eventeule/ folder
           cd eventeule
           zip -r ../dist/eventeule-${{ steps.get_version.outputs.VERSION }}.zip . -x "*.DS_Store"
           cd ..
 
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ steps.get_version.outputs.VERSION }}
+          files: ./dist/eventeule-${{ steps.get_version.outputs.VERSION }}.zip
           body: |
             Release version ${{ steps.get_version.outputs.VERSION }}
             
@@ -65,13 +63,3 @@ jobs:
             If you have the plugin already installed, you can update it directly from WordPress Admin.
           draft: false
           prerelease: false
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/eventeule-${{ steps.get_version.outputs.VERSION }}.zip
-          asset_name: eventeule-${{ steps.get_version.outputs.VERSION }}.zip
-          asset_content_type: application/zip
