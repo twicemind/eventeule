@@ -385,9 +385,19 @@
                                     ); ?>
                                 </p>
                                 <p style="margin: 10px 0 0 0;">
-                                    <a href="<?php echo admin_url('update-core.php'); ?>" class="button button-primary">
+                                    <?php
+                                    // Direct link to plugin update page
+                                    $update_url = wp_nonce_url(
+                                        self_admin_url('update.php?action=upgrade-plugin&plugin=eventeule/EventEule.php'),
+                                        'upgrade-plugin_eventeule/EventEule.php'
+                                    );
+                                    ?>
+                                    <a href="<?php echo esc_url($update_url); ?>" class="button button-primary">
                                         <span class="dashicons dashicons-download" style="margin-top: 3px;"></span>
                                         <?php esc_html_e('Install Update Now', 'eventeule'); ?>
+                                    </a>
+                                    <a href="<?php echo admin_url('update-core.php'); ?>" class="button button-secondary" style="margin-left: 10px;">
+                                        <?php esc_html_e('View in Updates Dashboard', 'eventeule'); ?>
                                     </a>
                                 </p>
                             </div>

@@ -139,28 +139,47 @@ class Updater
         // Force update check by clearing the cache
         if ($this->updateChecker) {
             try {
-                // Clear WordPress update cache  
-                delete_site_transient('update_plugins');
-                
                 // Clear Plugin Update Checker cache
                 $this->updateChecker->resetUpdateState();
                 
                 // Force immediate check
                 $this->updateChecker->checkForUpdates();
                 
-                // Give WordPress time to process the update
-                // The Plugin Update Checker hooks into WordPress's update system
-                // We need to trigger WordPress's own update check to populate the transient
-                wp_update_plugins();
-                
-                // Wait a moment for transient to be updated
-                usleep(500000); // 0.5 seconds
-                
                 // Get update info
                 $update = $this->updateChecker->getUpdate();
                 
-                // Check if update is actually newer than current version
+                // Manually ensure the WordPress transient is set
                 if ($update !== null && version_compare($update->version, EVENTEULE_VERSION, '>')) {
+                    // Get current transient
+                    $current = get_site_transient('update_plugins');
+                    if (!is_object($current)) {
+                        $current = new \stdClass();
+                    }
+                    if (!isset($current->response)) {
+                        $current->response = [];
+                    }
+                    
+                    // Add our plugin update to the transient
+                    $plugin_file = 'eventeule/EventEule.php';
+                    $current->response[$plugin_file] = (object)[
+                        'slug' => 'eventeule',
+                        'plugin' => $plugin_file,
+                        'new_version' => $update->version,
+                        'url' => 'https://github.com/twicemind/eventeule',
+                        'package' => $update->download_url,
+                        'tested' => '',
+                        'requires_php' => '',
+                        'compatibility' => new \stdClass(),
+                    ];
+                    
+                    // Save the transient
+                    set_site_transient('update_plugins', $current);
+                    
+                    // Log success
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log('EventEule: Manually set update transient for version ' . $update->version);
+                    }
+                    
                     wp_redirect(add_query_arg(
                         ['update-check' => 'available', 'version' => $update->version, 'tab' => 'updates'],
                         admin_url('admin.php?page=eventeule')

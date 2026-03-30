@@ -326,3 +326,6 @@ msgstr "Verbindung zu GitHub fehlgeschlagen. Bitte prüfe deine Internetverbindu
 
 msgid "Details: %s"
 msgstr "Details: %s"
+
+msgid "View in Updates Dashboard"
+msgstr "Im Updates-Dashboard ansehen"
