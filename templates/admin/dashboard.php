@@ -391,13 +391,6 @@
                                     </a>
                                 </p>
                             </div>
-                        <?php else: ?>
-                            <?php if ($manual_check_result === 'none'): ?>
-                                <p style="color: #00a32a; margin: 10px 0;">
-                                    <span class="dashicons dashicons-yes-alt"></span>
-                                    <?php esc_html_e('Your plugin is up to date!', 'eventeule'); ?>
-                                </p>
-                            <?php endif; ?>
                         <?php endif; ?>
                         
                         <form method="post" action="<?php echo admin_url('admin-post.php'); ?>" style="margin-top: 15px;">
