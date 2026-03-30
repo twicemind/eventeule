@@ -8,8 +8,8 @@
     </div>
 
     <?php if (isset($_GET['message']) && $_GET['message'] === 'saved'): ?>
-        <div class="notice notice-success is-dismissible">
-            <p><?php esc_html_e('Settings saved successfully!', 'eventeule'); ?></p>
+        <div class="eventeule-message eventeule-message-success notice is-dismissible" style="background: #d4edda; border-left: 4px solid #28a745; padding: 12px 15px; margin: 15px 0; border-radius: 4px;">
+            <p style="margin: 0;"><?php esc_html_e('Settings saved successfully!', 'eventeule'); ?></p>
         </div>
     <?php endif; ?>
 
@@ -313,19 +313,19 @@
                     <h2><span class="dashicons dashicons-update"></span> <?php esc_html_e('Plugin Updates', 'eventeule'); ?></h2>
                     
                     <?php
-                    // Check for update check results
-                    if (isset($_GET['update-check'])) {
+                    // Check for update check results - display only in this tab
+                    if (isset($_GET['update-check']) && $activeTab === 'updates') {
                         $check_result = sanitize_text_field($_GET['update-check']);
                         
                         if ($check_result === 'available' && isset($_GET['version'])) {
-                            echo '<div class="notice notice-success"><p>';
+                            echo '<div class="eventeule-message eventeule-message-success" style="background: #d4edda; border-left: 4px solid #28a745; padding: 12px 15px; margin: 15px 0; border-radius: 4px;"><p style="margin: 0;">';
                             printf(
                                 esc_html__('Update found! Version %s is available. See below to install it.', 'eventeule'),
                                 '<strong>' . esc_html($_GET['version']) .  '</strong>'
                             );
                             echo '</p></div>';
                         } elseif ($check_result === 'none') {
-                            echo '<div class="notice notice-info"><p>';
+                            echo '<div class="eventeule-message eventeule-message-info" style="background: #d1ecf1; border-left: 4px solid #17a2b8; padding: 12px 15px; margin: 15px 0; border-radius: 4px;"><p style="margin: 0;">';
                             esc_html_e('Your plugin is up to date!', 'eventeule');
                             echo '</p></div>';
                         } elseif ($check_result === 'error') {
@@ -342,7 +342,7 @@
                                 }
                             }
                             
-                            echo '<div class="notice notice-error"><p>' . $error_msg . '</p></div>';
+                            echo '<div class="eventeule-message eventeule-message-error" style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 12px 15px; margin: 15px 0; border-radius: 4px;"><p style="margin: 0;">' . $error_msg . '</p></div>';
                         }
                     }
                     ?>

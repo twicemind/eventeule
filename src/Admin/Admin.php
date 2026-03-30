@@ -20,6 +20,21 @@ class Admin
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
         add_action('admin_init', [$this, 'register_settings']);
         add_action('admin_post_eventeule_save_settings', [$this, 'save_settings']);
+        add_action('admin_notices', [$this, 'hide_other_plugin_notices']);
+    }
+
+    /**
+     * Hide notices from other plugins on EventEule pages
+     */
+    public function hide_other_plugin_notices(): void
+    {
+        $screen = get_current_screen();
+        if ($screen && strpos($screen->id, 'eventeule') !== false) {
+            remove_all_actions('admin_notices');
+            remove_all_actions('all_admin_notices');
+            // Re-add our own notice handler after removing others
+            add_action('admin_notices', [$this, 'hide_other_plugin_notices']);
+        }
     }
 
     public function register_menu(): void
