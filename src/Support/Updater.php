@@ -46,6 +46,9 @@ class Updater
         // Set branch for updates (main branch)
         $this->updateChecker->setBranch('main');
         
+        // Check for updates more frequently (every 6 hours instead of 12)
+        $this->updateChecker->setCheckPeriod(6);
+        
         // Filter for asset selection (choose the ZIP file)
         add_filter('puc_request_info_result-eventeule', [$this, 'filter_plugin_info'], 10, 2);
         
@@ -130,10 +133,26 @@ class Updater
         // Force update check by clearing the cache
         if ($this->updateChecker) {
             try {
+                // Clear WordPress update cache
+                delete_site_transient('update_plugins');
+                
+                // Clear Plugin Update Checker cache
+                $this->updateChecker->resetUpdateState();
+                
+                // Force immediate check
                 $this->updateChecker->checkForUpdates();
+                
+                // Wait a moment for the transient to be updated
+                sleep(1);
+                
+                // Get update info
                 $update = $this->updateChecker->getUpdate();
                 
-                if ($update !== null) {
+                // Also trigger WordPress core to check the transient
+                wp_update_plugins();
+                
+                // Check if update is actually newer than current version
+                if ($update !== null && version_compare($update->version, EVENTEULE_VERSION, '>')) {
                     wp_redirect(add_query_arg(
                         ['update-check' => 'available', 'version' => $update->version, 'tab' => 'updates'],
                         admin_url('admin.php?page=eventeule')
