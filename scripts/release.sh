@@ -110,6 +110,20 @@ echo -e "${BLUE}[5/7] Bumping version to ${RELEASE_TYPE}...${NC}"
 NEW_VERSION=$(grep "Version:" EventEule.php | sed 's/.*Version:\s*//' | tr -d ' ')
 echo -e "${GREEN}✓ New version: ${NEW_VERSION}${NC}"
 
+# Step 5.5: Compile translations
+echo -e "${BLUE}[5.5/7] Compiling translations...${NC}"
+if command -v msgfmt &> /dev/null; then
+    for po_file in languages/*.po; do
+        if [ -f "$po_file" ]; then
+            mo_file="${po_file%.po}.mo"
+            msgfmt "$po_file" -o "$mo_file" && echo -e "${GREEN}✓ Compiled: $mo_file${NC}"
+        fi
+    done
+else
+    echo -e "${YELLOW}⚠️  msgfmt not found. Translation files not compiled.${NC}"
+    echo -e "${YELLOW}   Install with: brew install gettext && brew link gettext${NC}"
+fi
+
 # Step 6: Generate commit message
 echo -e "${BLUE}[6/7] Creating commit...${NC}"
 
