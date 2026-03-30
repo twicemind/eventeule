@@ -135,15 +135,14 @@ class Updater
                 
                 if ($update !== null) {
                     wp_redirect(add_query_arg(
-                        ['update-check' => 'available', 'version' => $update->version],
-                        admin_url('admin.php?page=eventeule-updater-settings')
+                        ['update-check' => 'available', 'version' => $update->version, 'tab' => 'updates'],
+                        admin_url('admin.php?page=eventeule')
                     ));
                     exit;
                 } else {
                     wp_redirect(add_query_arg(
-                        'update-check',
-                        'none',
-                        admin_url('admin.php?page=eventeule-updater-settings')
+                        ['update-check' => 'none', 'tab' => 'updates'],
+                        admin_url('admin.php?page=eventeule')
                     ));
                     exit;
                 }
@@ -154,8 +153,8 @@ class Updater
                 }
                 
                 wp_redirect(add_query_arg(
-                    ['update-check' => 'error', 'error-detail' => urlencode($e->getMessage())],
-                    admin_url('admin.php?page=eventeule-updater-settings')
+                    ['update-check' => 'error', 'error-detail' => urlencode($e->getMessage()), 'tab' => 'updates'],
+                    admin_url('admin.php?page=eventeule')
                 ));
                 exit;
             }
@@ -166,8 +165,8 @@ class Updater
                 : 'Plugin Update Checker library not found. Please run: composer install';
                 
             wp_redirect(add_query_arg(
-                ['update-check' => 'error', 'error-detail' => urlencode($error_detail)],
-                admin_url('admin.php?page=eventeule-updater-settings')
+                ['update-check' => 'error', 'error-detail' => urlencode($error_detail), 'tab' => 'updates'],
+                admin_url('admin.php?page=eventeule')
             ));
             exit;
         }

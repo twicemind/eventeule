@@ -1,6 +1,6 @@
 {
   "name": "eventeule",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "description": "Wordpress Event-Plugin für Veranstaltungen, Termine und Aktionen für die Bücherei Huisheim",
   "main": "index.js",
   "directories": {
