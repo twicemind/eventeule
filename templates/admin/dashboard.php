@@ -320,7 +320,7 @@
                         if ($check_result === 'available' && isset($_GET['version'])) {
                             echo '<div class="notice notice-success"><p>';
                             printf(
-                                esc_html__('Update available! Version %s is ready to install. Go to Dashboard → Updates.', 'eventeule'),
+                                esc_html__('Update found! Version %s is available. See below to install it.', 'eventeule'),
                                 '<strong>' . esc_html($_GET['version']) .  '</strong>'
                             );
                             echo '</p></div>';
@@ -353,10 +353,45 @@
                             <code><?php echo esc_html(EVENTEULE_VERSION); ?></code>
                         </p>
                         
-                        <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+                        <?php
+                        // Check if update is available
+                        $update_plugins = get_site_transient('update_plugins');
+                        $plugin_file = 'eventeule/EventEule.php';
+                        $has_update = false;
+                        $new_version = '';
+                        
+                        if (isset($update_plugins->response[$plugin_file])) {
+                            $has_update = true;
+                            $new_version = $update_plugins->response[$plugin_file]->new_version;
+                        }
+                        
+                        if ($has_update): ?>
+                            <div class="notice notice-warning inline" style="margin: 15px 0; padding: 12px;">
+                                <p style="margin: 0;">
+                                    <strong><?php esc_html_e('Update Available!', 'eventeule'); ?></strong><br>
+                                    <?php printf(
+                                        esc_html__('Version %s is ready to install.', 'eventeule'),
+                                        '<strong>' . esc_html($new_version) . '</strong>'
+                                    ); ?>
+                                </p>
+                                <p style="margin: 10px 0 0 0;">
+                                    <a href="<?php echo admin_url('update-core.php'); ?>" class="button button-primary">
+                                        <span class="dashicons dashicons-download" style="margin-top: 3px;"></span>
+                                        <?php esc_html_e('Install Update Now', 'eventeule'); ?>
+                                    </a>
+                                </p>
+                            </div>
+                        <?php else: ?>
+                            <p style="color: #00a32a; margin: 10px 0;">
+                                <span class="dashicons dashicons-yes-alt"></span>
+                                <?php esc_html_e('Your plugin is up to date!', 'eventeule'); ?>
+                            </p>
+                        <?php endif; ?>
+                        
+                        <form method="post" action="<?php echo admin_url('admin-post.php'); ?>" style="margin-top: 15px;">
                             <input type="hidden" name="action" value="eventeule_check_updates" />
                             <?php wp_nonce_field('eventeule_check_updates', 'eventeule_nonce'); ?>
-                            <button type="submit" class="button button-primary">
+                            <button type="submit" class="button button-secondary">
                                 <span class="dashicons dashicons-update"></span>
                                 <?php esc_html_e('Check for Updates Now', 'eventeule'); ?>
                             </button>
