@@ -300,6 +300,12 @@ msgstr "GitHub-Repository"
 msgid "GitHub Personal Access Token (Optional)"
 msgstr "GitHub Personal Access Token (Optional)"
 
+msgid "The plugin automatically checks for updates from the public GitHub repository."
+msgstr "Das Plugin prüft automatisch auf Updates vom öffentlichen GitHub-Repository."
+
+msgid "A token is optional and only needed to avoid API rate limits (60 requests/hour)."
+msgstr "Ein Token ist optional und nur nötig, um API-Rate-Limits zu vermeiden (60 Anfragen/Stunde)."
+
 msgid "The plugin automatically checks for updates from the public GitHub repository. A token is optional and only needed to avoid API rate limits (60 requests/hour)."
 msgstr "Das Plugin prüft automatisch auf Updates vom öffentlichen GitHub-Repository. Ein Token ist optional und nur nötig, um API-Rate-Limits zu vermeiden (60 Anfragen/Stunde)."
 
