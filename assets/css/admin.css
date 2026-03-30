@@ -1,19 +1,35 @@
 /* EventEule Modern Admin Dashboard */
 
-/* Hide other plugin notices and popups on EventEule pages */
+/* Hide other plugin notices and popups on EventEule pages - AGGRESSIVE */
 .toplevel_page_eventeule .notice:not(.eventeule-message),
 .toplevel_page_eventeule #elementor-connect-pro-banner,
+.toplevel_page_eventeule #elementor-pro-notice,
 .toplevel_page_eventeule .e-notice,
 .toplevel_page_eventeule .elementor-message,
 .toplevel_page_eventeule .dialog-lightbox-widget,
 .toplevel_page_eventeule .dialog-widget,
+.toplevel_page_eventeule .dialog-lightbox-message,
+.toplevel_page_eventeule .dialog-lightbox-widget-content,
 body.admin_page_eventeule .notice:not(.eventeule-message),
 body.admin_page_eventeule #elementor-connect-pro-banner,
+body.admin_page_eventeule #elementor-pro-notice,
 body.admin_page_eventeule .e-notice,
 body.admin_page_eventeule .elementor-message,
 body.admin_page_eventeule .dialog-lightbox-widget,
-body.admin_page_eventeule .dialog-widget {
+body.admin_page_eventeule .dialog-widget,
+body.admin_page_eventeule .dialog-lightbox-message,
+body.admin_page_eventeule .dialog-lightbox-widget-content,
+body.admin_page_eventeule .dialog-buttons-wrapper {
     display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Prevent Elementor popup body class */
+body.admin_page_eventeule.elementor-has-popup,
+body.toplevel_page_eventeule.elementor-has-popup {
+    overflow: auto !important;
 }
 
 :root {

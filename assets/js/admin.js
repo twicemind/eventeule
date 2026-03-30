@@ -2,14 +2,30 @@
     'use strict';
 
     $(document).ready(function() {
-        // Hide other plugin notices and popups on EventEule pages
+        // Hide other plugin notices and popups on EventEule pages - AGGRESSIVE MODE
         if (window.location.href.indexOf('page=eventeule') > -1) {
-            // Remove Elementor Pro and other plugin popups
+            // Immediate removal
+            $('.dialog-lightbox-widget, .dialog-widget, #elementor-connect-pro-banner').remove();
+            $('.dialog-lightbox-message').remove();
+            $('body').removeClass('elementor-has-popup');
+            
+            // Repeated checking every 100ms for 10 seconds
+            let checkCount = 0;
+            const maxChecks = 100; // 10 seconds
+            
             const removeElements = setInterval(function() {
-                // Elementor Pro popups
+                checkCount++;
+                
+                // Elementor Pro popups - multiple selectors
                 $('.dialog-lightbox-widget, .dialog-widget, #elementor-connect-pro-banner').remove();
+                $('.dialog-lightbox-message, .dialog-lightbox-widget-content').remove();
                 $('.e-notice:not(.eventeule-message)').remove();
                 $('.elementor-message').remove();
+                $('body').removeClass('elementor-has-popup');
+                $('#elementor-pro-notice').remove();
+                
+                // Remove dialog overlay
+                $('.dialog-widget-content, .dialog-buttons-wrapper').closest('.dialog-widget').remove();
                 
                 // Other plugin notices (but keep EventEule's own)
                 $('.notice:not(.eventeule-message)').each(function() {
@@ -17,12 +33,12 @@
                         $(this).remove();
                     }
                 });
+                
+                // Stop after max checks
+                if (checkCount >= maxChecks) {
+                    clearInterval(removeElements);
+                }
             }, 100);
-            
-            // Stop checking after 5 seconds
-            setTimeout(function() {
-                clearInterval(removeElements);
-            }, 5000);
         }
         
         // Color Picker Synchronisation

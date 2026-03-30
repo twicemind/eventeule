@@ -38,6 +38,13 @@ class Updater
         
         if (!empty($githubToken)) {
             $this->updateChecker->setAuthentication($githubToken);
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('EventEule: Using GitHub token for API requests');
+            }
+        } else {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('EventEule: No GitHub token - using public API (60 req/hour limit)');
+            }
         }
 
         // Use release assets instead of source code
@@ -48,10 +55,12 @@ class Updater
         
         // Filter for asset selection (choose the ZIP file)
         add_filter('puc_request_info_result-eventeule', [$this, 'filter_plugin_info'], 10, 2);
+        add_filter('puc_request_info_query_args-eventeule', [$this, 'add_query_args'], 10, 1);
         
         // Add debug logging if WP_DEBUG is enabled
         if (defined('WP_DEBUG') && WP_DEBUG) {
             add_action('puc_check_now-eventeule', [$this, 'log_update_check'], 10, 1);
+            add_filter('puc_request_info_result-eventeule', [$this, 'log_api_response'], 20, 2);
         }
     }
 
@@ -197,5 +206,53 @@ class Updater
                 error_log('EventEule: No updates available. Current version: ' . EVENTEULE_VERSION);
             }
         }
+    }
+
+    /**
+     * Add query arguments for GitHub API (ensure public access works)
+     */
+    public function add_query_args($queryArgs): array
+    {
+        // Ensure we're requesting the latest release
+        if (!isset($queryArgs['per_page'])) {
+            $queryArgs['per_page'] = 1;
+        }
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('EventEule: API Query Args: ' . print_r($queryArgs, true));
+        }
+        
+        return $queryArgs;
+    }
+
+    /**
+     * Log API response for debugging
+     */
+    public function log_api_response($pluginInfo, $result): mixed
+    {
+        if (!isset($result)) {
+            error_log('EventEule: API returned no result');
+        } elseif (is_wp_error($result)) {
+            error_log('EventEule: API Error: ' . $result->get_error_message());
+        } elseif (is_object($result)) {
+            if (isset($result->message)) {
+                error_log('EventEule: GitHub API Message: ' . $result->message);
+            }
+            if (isset($result->tag_name)) {
+                error_log('EventEule: Latest GitHub Release: ' . $result->tag_name);
+            }
+            if (isset($result->assets) && is_array($result->assets)) {
+                error_log('EventEule: Found ' . count($result->assets) . ' release assets');
+                foreach ($result->assets as $asset) {
+                    if (isset($asset->name)) {
+                        error_log('EventEule: Asset: ' . $asset->name);
+                    }
+                }
+            } else {
+                error_log('EventEule: No assets found in release');
+            }
+        }
+        
+        return $pluginInfo;
     }
 }
