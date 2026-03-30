@@ -354,13 +354,23 @@
                         </p>
                         
                         <?php
-                        // Check if update is available
+                        // Check if manual update check was performed
+                        $manual_check_result = isset($_GET['update-check']) ? sanitize_text_field($_GET['update-check']) : null;
+                        $manual_version = isset($_GET['version']) ? sanitize_text_field($_GET['version']) : null;
+                        
+                        // Check WordPress transient for updates
                         $update_plugins = get_site_transient('update_plugins');
                         $plugin_file = 'eventeule/EventEule.php';
                         $has_update = false;
                         $new_version = '';
                         
-                        if (isset($update_plugins->response[$plugin_file])) {
+                        // Priority 1: Manual check result (most recent)
+                        if ($manual_check_result === 'available' && !empty($manual_version)) {
+                            $has_update = true;
+                            $new_version = $manual_version;
+                        } 
+                        // Priority 2: WordPress transient
+                        elseif (isset($update_plugins->response[$plugin_file])) {
                             $has_update = true;
                             $new_version = $update_plugins->response[$plugin_file]->new_version;
                         }
@@ -382,10 +392,12 @@
                                 </p>
                             </div>
                         <?php else: ?>
-                            <p style="color: #00a32a; margin: 10px 0;">
-                                <span class="dashicons dashicons-yes-alt"></span>
-                                <?php esc_html_e('Your plugin is up to date!', 'eventeule'); ?>
-                            </p>
+                            <?php if ($manual_check_result === 'none'): ?>
+                                <p style="color: #00a32a; margin: 10px 0;">
+                                    <span class="dashicons dashicons-yes-alt"></span>
+                                    <?php esc_html_e('Your plugin is up to date!', 'eventeule'); ?>
+                                </p>
+                            <?php endif; ?>
                         <?php endif; ?>
                         
                         <form method="post" action="<?php echo admin_url('admin-post.php'); ?>" style="margin-top: 15px;">

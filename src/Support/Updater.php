@@ -139,7 +139,7 @@ class Updater
         // Force update check by clearing the cache
         if ($this->updateChecker) {
             try {
-                // Clear WordPress update cache
+                // Clear WordPress update cache  
                 delete_site_transient('update_plugins');
                 
                 // Clear Plugin Update Checker cache
@@ -147,6 +147,14 @@ class Updater
                 
                 // Force immediate check
                 $this->updateChecker->checkForUpdates();
+                
+                // Give WordPress time to process the update
+                // The Plugin Update Checker hooks into WordPress's update system
+                // We need to trigger WordPress's own update check to populate the transient
+                wp_update_plugins();
+                
+                // Wait a moment for transient to be updated
+                usleep(500000); // 0.5 seconds
                 
                 // Get update info
                 $update = $this->updateChecker->getUpdate();

@@ -269,3 +269,60 @@ msgstr "Zur Anmeldung"
 
 msgid "The plugin has been loaded successfully."
 msgstr "Das Plugin wurde erfolgreich geladen."
+
+msgid "Update found! Version %s is available. See below to install it."
+msgstr "Update gefunden! Version %s ist verfügbar. Siehe unten für die Installation."
+
+msgid "Your plugin is up to date!"
+msgstr "Dein Plugin ist aktuell!"
+
+msgid "Update Available!"
+msgstr "Update verfügbar!"
+
+msgid "Version %s is ready to install."
+msgstr "Version %s kann installiert werden."
+
+msgid "Install Update Now"
+msgstr "Update jetzt installieren"
+
+msgid "Check for Updates Now"
+msgstr "Jetzt auf Updates prüfen"
+
+msgid "Plugin Updates"
+msgstr "Plugin-Updates"
+
+msgid "Current Version"
+msgstr "Aktuelle Version"
+
+msgid "GitHub Repository"
+msgstr "GitHub-Repository"
+
+msgid "GitHub Personal Access Token (Optional)"
+msgstr "GitHub Personal Access Token (Optional)"
+
+msgid "The plugin automatically checks for updates from the public GitHub repository. A token is optional and only needed to avoid API rate limits (60 requests/hour)."
+msgstr "Das Plugin prüft automatisch auf Updates vom öffentlichen GitHub-Repository. Ein Token ist optional und nur nötig, um API-Rate-Limits zu vermeiden (60 Anfragen/Stunde)."
+
+msgid "How to create a token (optional)"
+msgstr "So erstellst du einen Token (optional)"
+
+msgid "GitHub Token"
+msgstr "GitHub-Token"
+
+msgid "Leave empty if you don't need a token."
+msgstr "Leer lassen, wenn kein Token benötigt wird."
+
+msgid "Save Token"
+msgstr "Token speichern"
+
+msgid "Error checking for updates."
+msgstr "Fehler beim Prüfen auf Updates."
+
+msgid "GitHub API rate limit exceeded. Please wait an hour or configure a GitHub token below to increase the limit."
+msgstr "GitHub API-Limit überschritten. Bitte warte eine Stunde oder konfiguriere einen GitHub-Token, um das Limit zu erhöhen."
+
+msgid "Could not connect to GitHub. Please check your internet connection."
+msgstr "Verbindung zu GitHub fehlgeschlagen. Bitte prüfe deine Internetverbindung."
+
+msgid "Details: %s"
+msgstr "Details: %s"
