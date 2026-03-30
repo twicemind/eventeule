@@ -133,37 +133,31 @@ class Updater
                 $this->updateChecker->checkForUpdates();
                 $update = $this->updateChecker->getUpdate();
                 
-                // Check for API errors
-                $state = $this->updateChecker->getState();
-                if (isset($state->lastRequestApiErrors) && !empty($state->lastRequestApiErrors)) {
-                    $errorMsg = is_array($state->lastRequestApiErrors) 
-                        ? implode(', ', $state->lastRequestApiErrors) 
-                        : $state->lastRequestApiErrors;
-                    
-                    wp_redirect(add_query_arg(
-                        ['update-check' => 'error', 'error-detail' => urlencode($errorMsg)],
-                        admin_url('admin.php?page=eventeule-updater-settings')
-                    ));
-                    exit;
-                }
-                
                 if ($update !== null) {
                     wp_redirect(add_query_arg(
                         ['update-check' => 'available', 'version' => $update->version],
                         admin_url('admin.php?page=eventeule-updater-settings')
                     ));
+                    exit;
                 } else {
                     wp_redirect(add_query_arg(
                         'update-check',
                         'none',
                         admin_url('admin.php?page=eventeule-updater-settings')
                     ));
+                    exit;
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
+                // Log error for debugging
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('EventEule Update Check Error: ' . $e->getMessage());
+                }
+                
                 wp_redirect(add_query_arg(
                     ['update-check' => 'error', 'error-detail' => urlencode($e->getMessage())],
                     admin_url('admin.php?page=eventeule-updater-settings')
                 ));
+                exit;
             }
         } else {
             // Check if it's because the library is missing
@@ -175,9 +169,8 @@ class Updater
                 ['update-check' => 'error', 'error-detail' => urlencode($error_detail)],
                 admin_url('admin.php?page=eventeule-updater-settings')
             ));
+            exit;
         }
-        
-        exit;
     }
 
     /**
