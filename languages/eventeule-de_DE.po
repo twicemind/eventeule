@@ -37,28 +37,28 @@ msgid "No events found in Trash"
 msgstr "Keine Veranstaltungen im Papierkorb gefunden"
 
 msgid "Event Categories"
-msgstr "Veranstaltungskategorien"
+msgstr "Kategorien"
 
 msgid "Event Category"
-msgstr "Veranstaltungskategorie"
+msgstr "Kategorie"
 
 msgid "Search Event Categories"
-msgstr "Veranstaltungskategorien durchsuchen"
+msgstr "Kategorien durchsuchen"
 
 msgid "All Event Categories"
-msgstr "Alle Veranstaltungskategorien"
+msgstr "Alle Kategorien"
 
 msgid "Edit Event Category"
-msgstr "Veranstaltungskategorie bearbeiten"
+msgstr "Kategorie bearbeiten"
 
 msgid "Update Event Category"
-msgstr "Veranstaltungskategorie aktualisieren"
+msgstr "Kategorie aktualisieren"
 
 msgid "Add New Event Category"
-msgstr "Neue Veranstaltungskategorie hinzufügen"
+msgstr "Neue Kategorie hinzufügen"
 
 msgid "New Event Category Name"
-msgstr "Name der neuen Veranstaltungskategorie"
+msgstr "Name der neuen Kategorie"
 
 msgid "Categories"
 msgstr "Kategorien"
