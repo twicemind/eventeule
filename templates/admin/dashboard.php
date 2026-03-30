@@ -27,6 +27,10 @@
             <span class="dashicons dashicons-admin-appearance"></span>
             <?php esc_html_e('Widget Styling', 'eventeule'); ?>
         </a>
+        <a href="?page=eventeule&tab=updates" class="eventeule-tab <?php echo $activeTab === 'updates' ? 'active' : ''; ?>">
+            <span class="dashicons dashicons-update"></span>
+            <?php esc_html_e('Updates', 'eventeule'); ?>
+        </a>
     </nav>
 
     <!-- Tab Content -->
@@ -298,6 +302,125 @@
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+        <?php endif; ?>
+        
+        <?php if ($activeTab === 'updates'): ?>
+            <!-- Tab 4: Updates -->
+            <div class="eventeule-tab-panel">
+                <div class="eventeule-card">
+                    <h2><span class="dashicons dashicons-update"></span> <?php esc_html_e('Plugin Updates', 'eventeule'); ?></h2>
+                    
+                    <?php
+                    // Check for update check results
+                    if (isset($_GET['update-check'])) {
+                        $check_result = sanitize_text_field($_GET['update-check']);
+                        
+                        if ($check_result === 'available' && isset($_GET['version'])) {
+                            echo '<div class="notice notice-success"><p>';
+                            printf(
+                                esc_html__('Update available! Version %s is ready to install. Go to Dashboard → Updates.', 'eventeule'),
+                                '<strong>' . esc_html($_GET['version']) .  '</strong>'
+                            );
+                            echo '</p></div>';
+                        } elseif ($check_result === 'none') {
+                            echo '<div class="notice notice-info"><p>';
+                            esc_html_e('Your plugin is up to date!', 'eventeule');
+                            echo '</p></div>';
+                        } elseif ($check_result === 'error') {
+                            $error_detail = isset($_GET['error-detail']) ? sanitize_text_field($_GET['error-detail']) : '';
+                            $error_msg = esc_html__('Error checking for updates.', 'eventeule');
+                            
+                            if (!empty($error_detail)) {
+                                if (stripos($error_detail, 'rate limit') !== false) {
+                                    $error_msg .= ' ' . esc_html__('GitHub API rate limit exceeded. Please wait an hour or configure a GitHub token below to increase the limit.', 'eventeule');
+                                } elseif (stripos($error_detail, 'could not resolve host') !== false || stripos($error_detail, 'connection') !== false) {
+                                    $error_msg .= ' ' . esc_html__('Could not connect to GitHub. Please check your internet connection.', 'eventeule');
+                                } else {
+                                    $error_msg .= ' ' . sprintf(esc_html__('Details: %s', 'eventeule'), esc_html($error_detail));
+                                }
+                            }
+                            
+                            echo '<div class="notice notice-error"><p>' . $error_msg . '</p></div>';
+                        }
+                    }
+                    ?>
+                    
+                    <div class="eventeule-section">
+                        <h3><?php esc_html_e('Current Version', 'eventeule'); ?></h3>
+                        <p class="eventeule-version-info">
+                            <code><?php echo esc_html(EVENTEULE_VERSION); ?></code>
+                        </p>
+                        
+                        <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+                            <input type="hidden" name="action" value="eventeule_check_updates" />
+                            <?php wp_nonce_field('eventeule_check_updates', 'eventeule_nonce'); ?>
+                            <button type="submit" class="button button-primary">
+                                <span class="dashicons dashicons-update"></span>
+                                <?php esc_html_e('Check for Updates Now', 'eventeule'); ?>
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="eventeule-section">
+                        <h3><?php esc_html_e('GitHub Repository', 'eventeule'); ?></h3>
+                        <p>
+                            <a href="https://github.com/twicemind/eventeule" target="_blank" class="button">
+                                <span class="dashicons dashicons-external"></span>
+                                twicemind/eventeule
+                            </a>
+                        </p>
+                    </div>
+                    
+                    <div class="eventeule-section">
+                        <h3><?php esc_html_e('GitHub Personal Access Token (Optional)', 'eventeule'); ?></h3>
+                        <p class="description">
+                            <?php esc_html_e('The plugin automatically checks for updates from the public GitHub repository.', 'eventeule'); ?>
+                            <strong><?php esc_html_e('A token is optional and only needed to avoid API rate limits (60 requests/hour).', 'eventeule'); ?></strong>
+                        </p>
+                        
+                        <details style="margin-top: 15px;">
+                            <summary style="cursor: pointer; font-weight: 600;">
+                                <?php esc_html_e('How to create a token (optional)', 'eventeule'); ?>
+                            </summary>
+                            <ol style="margin-top: 10px; padding-left: 20px;">
+                                <li><?php printf(
+                                    esc_html__('Go to %s', 'eventeule'),
+                                    '<a href="https://github.com/settings/tokens" target="_blank">GitHub Settings → Developer settings → Personal access tokens</a>'
+                                ); ?></li>
+                                <li><?php esc_html_e('Click "Generate new token" → "Generate new token (classic)"', 'eventeule'); ?></li>
+                                <li><?php esc_html_e('Give it a name (e.g. "EventEule WordPress Updates")', 'eventeule'); ?></li>
+                                <li><?php esc_html_e('Select scopes: Check only "public_repo"', 'eventeule'); ?></li>
+                                <li><?php esc_html_e('Click "Generate token" and copy the token', 'eventeule'); ?></li>
+                                <li><?php esc_html_e('Paste the token below and save', 'eventeule'); ?></li>
+                            </ol>
+                        </details>
+                        
+                        <form method="post" action="options.php" style="margin-top: 20px;">
+                            <?php settings_fields('eventeule_updater_settings'); ?>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row">
+                                        <label for="eventeule_github_token"><?php esc_html_e('GitHub Token', 'eventeule'); ?></label>
+                                    </th>
+                                    <td>
+                                        <input type="password" 
+                                               id="eventeule_github_token" 
+                                               name="eventeule_github_token" 
+                                               value="<?php echo esc_attr(get_option('eventeule_github_token', '')); ?>" 
+                                               class="regular-text" 
+                                               autocomplete="off" 
+                                               placeholder="<?php esc_attr_e('ghp_xxxxxxxxxxxx (optional)', 'eventeule'); ?>" />
+                                        <p class="description">
+                                            <?php esc_html_e('Leave empty if you don\'t need a token.', 'eventeule'); ?>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            <?php submit_button(esc_html__('Save Token', 'eventeule'), 'secondary'); ?>
+                        </form>
+                    </div>
                 </div>
             </div>
         <?php endif; ?>
