@@ -47,15 +47,8 @@ class Updater
             }
         }
 
-        // Use release assets instead of source code
-        $this->updateChecker->getVcsApi()->enableReleaseAssets();
-        
-        // Set branch for updates (main branch)
-        $this->updateChecker->setBranch('main');
-        
-        // Filter for asset selection (choose the ZIP file)
-        add_filter('puc_request_info_result-eventeule', [$this, 'filter_plugin_info'], 10, 2);
-        add_filter('puc_request_info_query_args-eventeule', [$this, 'add_query_args'], 10, 1);
+        // Use release assets instead of source code (regex picks the plugin ZIP)
+        $this->updateChecker->getVcsApi()->enableReleaseAssets('/eventeule-.*\.zip/i');
         
         // Add debug logging if WP_DEBUG is enabled
         if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -96,28 +89,6 @@ class Updater
 
         // 5. No token found - only works for public repositories
         return '';
-    }
-
-    /**
-     * Filters plugin information and selects the correct asset
-     */
-    public function filter_plugin_info($pluginInfo, $result)
-    {
-        if (!isset($result) || !is_object($result)) {
-            return $pluginInfo;
-        }
-
-        // Suche nach dem ZIP-Asset in den Releases
-        if (isset($result->assets) && is_array($result->assets)) {
-            foreach ($result->assets as $asset) {
-                if (isset($asset->name) && strpos($asset->name, 'eventeule-') === 0 && strpos($asset->name, '.zip') !== false) {
-                    $pluginInfo->download_url = $asset->browser_download_url;
-                    break;
-                }
-            }
-        }
-
-        return $pluginInfo;
     }
 
     /**
@@ -233,23 +204,6 @@ class Updater
                 error_log('EventEule: No updates available. Current version: ' . EVENTEULE_VERSION);
             }
         }
-    }
-
-    /**
-     * Add query arguments for GitHub API (ensure public access works)
-     */
-    public function add_query_args($queryArgs): array
-    {
-        // Ensure we're requesting the latest release
-        if (!isset($queryArgs['per_page'])) {
-            $queryArgs['per_page'] = 1;
-        }
-        
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('EventEule: API Query Args: ' . print_r($queryArgs, true));
-        }
-        
-        return $queryArgs;
     }
 
     /**
