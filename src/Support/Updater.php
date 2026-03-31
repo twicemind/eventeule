@@ -50,11 +50,41 @@ class Updater
         // Use release assets instead of source code (regex picks the plugin ZIP)
         $this->updateChecker->getVcsApi()->enableReleaseAssets('/eventeule-.*\.zip/i');
         
+        // Inject into transient at WRITE time so even after WP refreshes it, EventEule is included
+        add_filter('pre_set_site_transient_update_plugins', [$this, 'ensure_update_in_transient'], 20, 1);
+
         // Add debug logging if WP_DEBUG is enabled
         if (defined('WP_DEBUG') && WP_DEBUG) {
             add_action('puc_check_now-eventeule', [$this, 'log_update_check'], 10, 1);
             add_filter('puc_request_info_result-eventeule', [$this, 'log_api_response'], 20, 2);
         }
+    }
+
+    /**
+     * Inject EventEule update into the transient when WordPress writes it.
+     * PUC handles the READ side; this covers the WRITE side so the stored
+     * transient already contains our update (belt-and-suspenders).
+     */
+    public function ensure_update_in_transient($transient) {
+        if (!$this->updateChecker) {
+            return $transient;
+        }
+        $update = $this->updateChecker->getUpdate();
+        if ($update !== null) {
+            if (!is_object($transient)) {
+                $transient = new \stdClass();
+                $transient->response = [];
+            }
+            if (!isset($transient->response)) {
+                $transient->response = [];
+            }
+            $pluginFile = plugin_basename(EVENTEULE_FILE);
+            $transient->response[$pluginFile] = $update->toWpFormat();
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('EventEule: Injected v' . $update->version . ' into update transient (pre_set)');
+            }
+        }
+        return $transient;
     }
 
     /**
@@ -143,6 +173,10 @@ class Updater
                         'compatibility' => new \stdClass(),
                     ];
                     
+                    // Refresh last_checked so _maybe_update_plugins() won't immediately
+                    // overwrite this transient with a fresh WP.org API call
+                    $current->last_checked = time();
+
                     // Save the transient
                     set_site_transient('update_plugins', $current);
                     
