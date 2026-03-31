@@ -4,7 +4,7 @@
             <span class="dashicons dashicons-calendar-alt"></span>
             <h1><?php esc_html_e('EventEule', 'eventeule'); ?></h1>
         </div>
-        <p class="eventeule-tagline"><?php esc_html_e('Event Management Made Easy', 'eventeule'); ?></p>
+        <p class="eventeule-tagline"><?php esc_html_e('Event Management Made Easy', 'eventeule'); ?> &mdash; v<?php echo esc_html(EVENTEULE_VERSION); ?></p>
     </div>
 
     <?php if (isset($_GET['message']) && $_GET['message'] === 'saved'): ?>
