@@ -12,6 +12,7 @@ class Updater
     {
         add_action('plugins_loaded', [$this, 'init_update_checker']);
         add_action('admin_post_eventeule_check_updates', [$this, 'handle_manual_update_check']);
+        add_action('admin_post_eventeule_direct_update', [$this, 'handle_direct_update']);
     }
 
     public function init_update_checker(): void
@@ -238,6 +239,122 @@ class Updater
                 error_log('EventEule: No updates available. Current version: ' . EVENTEULE_VERSION);
             }
         }
+    }
+
+    /**
+     * Handle direct update from GitHub: fetches latest release, injects into
+     * the update transient and redirects to WordPress's own upgrade screen.
+     */
+    public function handle_direct_update(): void
+    {
+        if (!current_user_can('update_plugins')) {
+            wp_die(esc_html__('You do not have permission to perform this action.', 'eventeule'));
+        }
+
+        check_admin_referer('eventeule_direct_update', 'eventeule_nonce');
+
+        $api_url = 'https://api.github.com/repos/twicemind/eventeule/releases/latest';
+        $args = [
+            'headers' => [
+                'User-Agent' => 'EventEule-WordPress-Plugin/' . EVENTEULE_VERSION,
+                'Accept'     => 'application/vnd.github.v3+json',
+            ],
+            'timeout'   => 15,
+            'sslverify' => true,
+        ];
+
+        $token = $this->get_github_token();
+        if (!empty($token)) {
+            $args['headers']['Authorization'] = 'Bearer ' . $token;
+        }
+
+        $response = wp_remote_get($api_url, $args);
+
+        if (is_wp_error($response)) {
+            wp_safe_redirect(add_query_arg(
+                ['direct-update' => 'error', 'error-detail' => rawurlencode($response->get_error_message()), 'tab' => 'updates'],
+                admin_url('admin.php?page=eventeule')
+            ));
+            exit;
+        }
+
+        $code = wp_remote_retrieve_response_code($response);
+        if (200 !== $code) {
+            wp_safe_redirect(add_query_arg(
+                ['direct-update' => 'error', 'error-detail' => rawurlencode('GitHub API returned HTTP ' . $code), 'tab' => 'updates'],
+                admin_url('admin.php?page=eventeule')
+            ));
+            exit;
+        }
+
+        $body           = json_decode(wp_remote_retrieve_body($response), true);
+        $latest_version = ltrim($body['tag_name'] ?? '', 'v');
+
+        if (empty($latest_version)) {
+            wp_safe_redirect(add_query_arg(
+                ['direct-update' => 'error', 'error-detail' => rawurlencode('No release version found on GitHub'), 'tab' => 'updates'],
+                admin_url('admin.php?page=eventeule')
+            ));
+            exit;
+        }
+
+        // Find the plugin ZIP asset; fall back to the source zipball
+        $download_url = null;
+        if (!empty($body['assets'])) {
+            foreach ($body['assets'] as $asset) {
+                if (preg_match('/eventeule-.*\.zip$/i', $asset['name'] ?? '')) {
+                    $download_url = $asset['browser_download_url'];
+                    break;
+                }
+            }
+        }
+        if (empty($download_url)) {
+            $download_url = $body['zipball_url'] ?? null;
+        }
+
+        if (empty($download_url)) {
+            wp_safe_redirect(add_query_arg(
+                ['direct-update' => 'error', 'error-detail' => rawurlencode('No download URL found for release v' . $latest_version), 'tab' => 'updates'],
+                admin_url('admin.php?page=eventeule')
+            ));
+            exit;
+        }
+
+        // Inject into WordPress update transient so update.php can use it
+        $current = get_site_transient('update_plugins');
+        if (!is_object($current)) {
+            $current = new \stdClass();
+        }
+        if (!isset($current->response)) {
+            $current->response = [];
+        }
+
+        $plugin_file = plugin_basename(EVENTEULE_FILE);
+        $current->response[$plugin_file] = (object) [
+            'slug'          => 'eventeule',
+            'plugin'        => $plugin_file,
+            'new_version'   => $latest_version,
+            'url'           => 'https://github.com/twicemind/eventeule',
+            'package'       => $download_url,
+            'tested'        => '',
+            'requires_php'  => '',
+            'compatibility' => new \stdClass(),
+        ];
+        $current->last_checked = time();
+        set_site_transient('update_plugins', $current);
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('EventEule: Direct update triggered – v' . $latest_version . ' from ' . $download_url);
+        }
+
+        // Hand off to WordPress's standard plugin upgrade screen
+        wp_safe_redirect(
+            wp_nonce_url(
+                self_admin_url('update.php?action=upgrade-plugin&plugin=' . rawurlencode($plugin_file)),
+                'upgrade-plugin_' . $plugin_file
+            )
+        );
+        exit;
     }
 
     /**

@@ -345,6 +345,20 @@
                             echo '<div class="eventeule-message eventeule-message-error" style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 12px 15px; margin: 15px 0; border-radius: 4px;"><p style="margin: 0;">' . $error_msg . '</p></div>';
                         }
                     }
+
+                    // Direct-update result messages
+                    if (isset($_GET['direct-update']) && $activeTab === 'updates') {
+                        $direct_result = sanitize_text_field($_GET['direct-update']);
+                        if ($direct_result === 'error') {
+                            $error_detail = isset($_GET['error-detail']) ? sanitize_text_field($_GET['error-detail']) : '';
+                            echo '<div class="eventeule-message eventeule-message-error" style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 12px 15px; margin: 15px 0; border-radius: 4px;">';
+                            echo '<p style="margin: 0;"><strong>' . esc_html__('Direct update failed.', 'eventeule') . '</strong>';
+                            if (!empty($error_detail)) {
+                                echo ' ' . esc_html($error_detail);
+                            }
+                            echo '</p></div>';
+                        }
+                    }
                     ?>
                     
                     <div class="eventeule-section">
@@ -409,6 +423,22 @@
                             <button type="submit" class="button button-secondary">
                                 <span class="dashicons dashicons-update"></span>
                                 <?php esc_html_e('Check for Updates Now', 'eventeule'); ?>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="eventeule-section" style="border-top: 1px solid #ddd; margin-top: 20px; padding-top: 20px;">
+                        <h3><?php esc_html_e('Direct Update from GitHub', 'eventeule'); ?></h3>
+                        <p class="description">
+                            <?php esc_html_e('If automatic update detection does not work, use this button to fetch the latest release from GitHub and install it directly via WordPress.', 'eventeule'); ?>
+                        </p>
+                        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin-top: 12px;">
+                            <input type="hidden" name="action" value="eventeule_direct_update" />
+                            <?php wp_nonce_field('eventeule_direct_update', 'eventeule_nonce'); ?>
+                            <button type="submit" class="button button-primary"
+                                    onclick="return confirm('<?php esc_attr_e('This will download and install the latest release from GitHub. Continue?', 'eventeule'); ?>');">
+                                <span class="dashicons dashicons-download" style="margin-top: 3px;"></span>
+                                <?php esc_html_e('Install Latest GitHub Release', 'eventeule'); ?>
                             </button>
                         </form>
                     </div>
