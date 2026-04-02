@@ -383,9 +383,23 @@ class Updater
             $this->redirect_update_error($detail);
         }
 
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('EventEule: Direct update to v' . $latest_version . ' completed successfully');
+        // ── 5. Re-activate the plugin ────────────────────────────────────────
+        // Plugin_Upgrader deactivates the plugin before replacing files.
+        // WordPress does NOT re-activate it automatically, so we do it here.
+        $activate_result = activate_plugin($plugin_file);
+        if (is_wp_error($activate_result)) {
+            // Update succeeded but activation failed – still show success but log it
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('EventEule: Update OK but re-activation failed: ' . $activate_result->get_error_message());
+            }
+        } else {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('EventEule: Direct update to v' . $latest_version . ' completed and plugin re-activated');
+            }
         }
+
+        // Flush the GitHub version transient so the Updates tab reflects the new version
+        delete_transient('eventeule_latest_github_version');
 
         wp_safe_redirect(add_query_arg(
             ['direct-update' => 'success', 'version' => $latest_version, 'tab' => 'updates'],
