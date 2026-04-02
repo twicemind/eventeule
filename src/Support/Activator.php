@@ -4,6 +4,7 @@ namespace EventEule\Support;
 
 use EventEule\Domain\EventCategoryTaxonomy;
 use EventEule\Domain\EventPostType;
+use EventEule\Registration\RegistrationRepository;
 
 class Activator
 {
@@ -14,6 +15,8 @@ class Activator
 
         $taxonomy = new EventCategoryTaxonomy();
         $taxonomy->register_taxonomy();
+
+        RegistrationRepository::create_table();
 
         flush_rewrite_rules();
     }

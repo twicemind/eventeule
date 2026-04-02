@@ -5,12 +5,16 @@ namespace EventEule;
 use EventEule\Admin\Admin;
 use EventEule\Admin\EventAdminColumns;
 use EventEule\Admin\EventMetaBoxes;
+use EventEule\Admin\EventRegistrationMetaBox;
+use EventEule\Admin\RegistrationsAdmin;
 use EventEule\Admin\UpdaterSettings;
 use EventEule\Api\Api;
 use EventEule\Domain\EventCategoryTaxonomy;
 use EventEule\Domain\EventPostType;
 use EventEule\Frontend\Frontend;
 use EventEule\Integration\ElementorIntegration;
+use EventEule\Registration\RegistrationController;
+use EventEule\Registration\RegistrationRepository;
 use EventEule\Repository\EventRepository;
 use EventEule\Support\I18n;
 use EventEule\Support\Updater;
@@ -24,6 +28,7 @@ class Plugin
         $this->register_domain();
         $this->register_admin();
         $this->register_frontend();
+        $this->register_registration();
         $this->register_integrations();
         $this->register_api();
     }
@@ -52,8 +57,9 @@ class Plugin
     private function register_admin(): void
     {
         if (is_admin()) {
-            $eventRepository = new EventRepository();
-            
+            $eventRepository       = new EventRepository();
+            $registrationRepository = new RegistrationRepository();
+
             $admin = new Admin($eventRepository);
             $admin->register();
 
@@ -65,7 +71,28 @@ class Plugin
 
             $updaterSettings = new UpdaterSettings();
             $updaterSettings->register();
+
+            $registrationMetaBox = new EventRegistrationMetaBox($registrationRepository);
+            $registrationMetaBox->register();
+
+            $registrationsAdmin = new RegistrationsAdmin($registrationRepository);
+            $registrationsAdmin->register();
         }
+    }
+
+    private function register_registration(): void
+    {
+        $registrationRepository = new RegistrationRepository();
+
+        // Ensure the DB table exists on existing installs (idempotent)
+        $dbVersion = get_option('eventeule_reg_db_version', '');
+        if ($dbVersion !== '1.0') {
+            RegistrationRepository::create_table();
+            update_option('eventeule_reg_db_version', '1.0');
+        }
+
+        $registrationController = new RegistrationController($registrationRepository);
+        $registrationController->register();
     }
 
     private function register_frontend(): void
