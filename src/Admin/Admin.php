@@ -66,7 +66,10 @@ class Admin
         
         // Hole gespeicherte Einstellungen
         $settings = $this->get_settings();
-        
+
+        // Only query GitHub when the Updates tab is active
+        $latestGithubVersion = ($activeTab === 'updates') ? $this->get_latest_github_version() : null;
+
         $template = EVENTEULE_PATH . 'templates/admin/dashboard.php';
 
         if (file_exists($template)) {
@@ -229,6 +232,50 @@ class Admin
         $saved = get_option('eventeule_widget_colors', []);
         
         return wp_parse_args($saved, $defaults);
+    }
+
+    /**
+     * Fetch the latest release tag from GitHub, cached in a transient for 1 hour.
+     * Returns the version string (e.g. "2.6.1") or null on error.
+     */
+    private function get_latest_github_version(): ?string
+    {
+        $transient_key = 'eventeule_latest_github_version';
+        $cached = get_transient($transient_key);
+        if ($cached !== false) {
+            return $cached === '' ? null : (string) $cached;
+        }
+
+        $token = get_option('eventeule_github_token', '');
+        $headers = [
+            'User-Agent' => 'EventEule-WordPress-Plugin/' . EVENTEULE_VERSION,
+            'Accept'     => 'application/vnd.github.v3+json',
+        ];
+        if (!empty($token)) {
+            $headers['Authorization'] = 'Bearer ' . $token;
+        }
+
+        $response = wp_remote_get('https://api.github.com/repos/twicemind/eventeule/releases/latest', [
+            'headers' => $headers,
+            'timeout' => 10,
+        ]);
+
+        if (is_wp_error($response) || 200 !== wp_remote_retrieve_response_code($response)) {
+            // Cache failure briefly so we don't hammer the API on every page load
+            set_transient($transient_key, '', 5 * MINUTE_IN_SECONDS);
+            return null;
+        }
+
+        $body    = json_decode(wp_remote_retrieve_body($response), true);
+        $version = ltrim($body['tag_name'] ?? '', 'v');
+
+        if (empty($version)) {
+            set_transient($transient_key, '', 5 * MINUTE_IN_SECONDS);
+            return null;
+        }
+
+        set_transient($transient_key, $version, HOUR_IN_SECONDS);
+        return $version;
     }
 
     public function save_settings(): void

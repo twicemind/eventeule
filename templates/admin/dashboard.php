@@ -440,20 +440,46 @@
                         </form>
                     </div>
 
+                    <?php
+                    $github_has_update = isset($latestGithubVersion)
+                        && $latestGithubVersion !== null
+                        && version_compare($latestGithubVersion, EVENTEULE_VERSION, '>');
+                    $github_version_label = $latestGithubVersion ?? __('unknown', 'eventeule');
+                    ?>
                     <div class="eventeule-section" style="border-top: 1px solid #ddd; margin-top: 20px; padding-top: 20px;">
                         <h3><?php esc_html_e('Direct Update from GitHub', 'eventeule'); ?></h3>
-                        <p class="description">
-                            <?php esc_html_e('If automatic update detection does not work, use this button to fetch the latest release from GitHub and install it directly via WordPress.', 'eventeule'); ?>
-                        </p>
-                        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin-top: 12px;">
-                            <input type="hidden" name="action" value="eventeule_direct_update" />
-                            <?php wp_nonce_field('eventeule_direct_update', 'eventeule_nonce'); ?>
-                            <button type="submit" class="button button-primary"
-                                    onclick="return confirm('<?php esc_attr_e('This will download and install the latest release from GitHub. Continue?', 'eventeule'); ?>');">
-                                <span class="dashicons dashicons-download" style="margin-top: 3px;"></span>
-                                <?php esc_html_e('Install Latest GitHub Release', 'eventeule'); ?>
-                            </button>
-                        </form>
+
+                        <?php if (!isset($latestGithubVersion) || $latestGithubVersion === null): ?>
+                            <p class="description">
+                                <?php esc_html_e('Could not retrieve the latest version from GitHub right now. Please try later or check your internet connection.', 'eventeule'); ?>
+                            </p>
+                        <?php elseif (!$github_has_update): ?>
+                            <p class="description">
+                                <?php printf(
+                                    esc_html__('You are already running the latest version (%s). No update available.', 'eventeule'),
+                                    '<strong>' . esc_html($github_version_label) . '</strong>'
+                                ); ?>
+                            </p>
+                        <?php else: ?>
+                            <p class="description">
+                                <?php printf(
+                                    esc_html__('Version %s is available on GitHub. Click the button below to install it now.', 'eventeule'),
+                                    '<strong>' . esc_html($github_version_label) . '</strong>'
+                                ); ?>
+                            </p>
+                            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin-top: 12px;">
+                                <input type="hidden" name="action" value="eventeule_direct_update" />
+                                <?php wp_nonce_field('eventeule_direct_update', 'eventeule_nonce'); ?>
+                                <button type="submit" class="button button-primary"
+                                        onclick="return confirm('<?php esc_attr_e('This will download and install the latest release from GitHub. Continue?', 'eventeule'); ?>');">
+                                    <span class="dashicons dashicons-download" style="margin-top: 3px;"></span>
+                                    <?php printf(
+                                        esc_html__('Install v%s from GitHub', 'eventeule'),
+                                        esc_html($github_version_label)
+                                    ); ?>
+                                </button>
+                            </form>
+                        <?php endif; ?>
                     </div>
                     
                     <div class="eventeule-section">
