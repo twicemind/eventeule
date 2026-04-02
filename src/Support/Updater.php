@@ -242,8 +242,9 @@ class Updater
     }
 
     /**
-     * Handle direct update from GitHub: fetches latest release, injects into
-     * the update transient and redirects to WordPress's own upgrade screen.
+     * Handle direct update from GitHub: fetches the latest release ZIP and
+     * installs it using WordPress's Plugin_Upgrader – no redirect to update.php,
+     * no nonce-in-URL issues.
      */
     public function handle_direct_update(): void
     {
@@ -253,13 +254,14 @@ class Updater
 
         check_admin_referer('eventeule_direct_update', 'eventeule_nonce');
 
+        // ── 1. Fetch latest release info from GitHub ────────────────────────
         $api_url = 'https://api.github.com/repos/twicemind/eventeule/releases/latest';
         $args = [
             'headers' => [
                 'User-Agent' => 'EventEule-WordPress-Plugin/' . EVENTEULE_VERSION,
                 'Accept'     => 'application/vnd.github.v3+json',
             ],
-            'timeout'   => 15,
+            'timeout'   => 20,
             'sslverify' => true,
         ];
 
@@ -271,34 +273,22 @@ class Updater
         $response = wp_remote_get($api_url, $args);
 
         if (is_wp_error($response)) {
-            wp_safe_redirect(add_query_arg(
-                ['direct-update' => 'error', 'error-detail' => rawurlencode($response->get_error_message()), 'tab' => 'updates'],
-                admin_url('admin.php?page=eventeule')
-            ));
-            exit;
+            $this->redirect_update_error($response->get_error_message());
         }
 
         $code = wp_remote_retrieve_response_code($response);
         if (200 !== $code) {
-            wp_safe_redirect(add_query_arg(
-                ['direct-update' => 'error', 'error-detail' => rawurlencode('GitHub API returned HTTP ' . $code), 'tab' => 'updates'],
-                admin_url('admin.php?page=eventeule')
-            ));
-            exit;
+            $this->redirect_update_error('GitHub API returned HTTP ' . $code);
         }
 
         $body           = json_decode(wp_remote_retrieve_body($response), true);
         $latest_version = ltrim($body['tag_name'] ?? '', 'v');
 
         if (empty($latest_version)) {
-            wp_safe_redirect(add_query_arg(
-                ['direct-update' => 'error', 'error-detail' => rawurlencode('No release version found on GitHub'), 'tab' => 'updates'],
-                admin_url('admin.php?page=eventeule')
-            ));
-            exit;
+            $this->redirect_update_error('No release version found on GitHub');
         }
 
-        // Find the plugin ZIP asset; fall back to the source zipball
+        // ── 2. Locate the plugin ZIP asset ──────────────────────────────────
         $download_url = null;
         if (!empty($body['assets'])) {
             foreach ($body['assets'] as $asset) {
@@ -308,19 +298,28 @@ class Updater
                 }
             }
         }
+        // Fall back to GitHub's auto-generated source ZIP
         if (empty($download_url)) {
             $download_url = $body['zipball_url'] ?? null;
         }
 
         if (empty($download_url)) {
-            wp_safe_redirect(add_query_arg(
-                ['direct-update' => 'error', 'error-detail' => rawurlencode('No download URL found for release v' . $latest_version), 'tab' => 'updates'],
-                admin_url('admin.php?page=eventeule')
-            ));
-            exit;
+            $this->redirect_update_error('No download URL found for release v' . $latest_version);
         }
 
-        // Inject into WordPress update transient so update.php can use it
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('EventEule: Direct update – installing v' . $latest_version . ' from ' . $download_url);
+        }
+
+        // ── 3. Run the upgrade inline using Plugin_Upgrader ─────────────────
+        //   This avoids any redirect-to-update.php / nonce-expiry issues.
+        require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+        require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+        $plugin_file = plugin_basename(EVENTEULE_FILE);
+
+        // Inject the download URL into the update transient so Plugin_Upgrader
+        // can resolve it via upgrade().
         $current = get_site_transient('update_plugins');
         if (!is_object($current)) {
             $current = new \stdClass();
@@ -328,8 +327,6 @@ class Updater
         if (!isset($current->response)) {
             $current->response = [];
         }
-
-        $plugin_file = plugin_basename(EVENTEULE_FILE);
         $current->response[$plugin_file] = (object) [
             'slug'          => 'eventeule',
             'plugin'        => $plugin_file,
@@ -343,17 +340,46 @@ class Updater
         $current->last_checked = time();
         set_site_transient('update_plugins', $current);
 
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('EventEule: Direct update triggered – v' . $latest_version . ' from ' . $download_url);
+        // Silent skin – no HTML output, collects errors internally
+        $skin     = new \WP_Ajax_Upgrader_Skin();
+        $upgrader = new \Plugin_Upgrader($skin);
+        $result   = $upgrader->upgrade($plugin_file);
+
+        // ── 4. Evaluate result and redirect ─────────────────────────────────
+        if (is_wp_error($result)) {
+            $this->redirect_update_error($result->get_error_message());
         }
 
-        // Hand off to WordPress's standard plugin upgrade screen
-        wp_safe_redirect(
-            wp_nonce_url(
-                self_admin_url('update.php?action=upgrade-plugin&plugin=' . rawurlencode($plugin_file)),
-                'upgrade-plugin_' . $plugin_file
-            )
-        );
+        if (is_wp_error($skin->result)) {
+            $this->redirect_update_error($skin->result->get_error_message());
+        }
+
+        if ($result === false) {
+            $errors = $skin->get_upgrade_messages();
+            $detail = !empty($errors) ? implode(' ', $errors) : 'Unknown upgrade error';
+            $this->redirect_update_error($detail);
+        }
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('EventEule: Direct update to v' . $latest_version . ' completed successfully');
+        }
+
+        wp_safe_redirect(add_query_arg(
+            ['direct-update' => 'success', 'version' => $latest_version, 'tab' => 'updates'],
+            admin_url('admin.php?page=eventeule')
+        ));
+        exit;
+    }
+
+    /**
+     * Redirect back to the Updates tab with an error message.
+     */
+    private function redirect_update_error(string $detail): never
+    {
+        wp_safe_redirect(add_query_arg(
+            ['direct-update' => 'error', 'error-detail' => rawurlencode($detail), 'tab' => 'updates'],
+            admin_url('admin.php?page=eventeule')
+        ));
         exit;
     }
 

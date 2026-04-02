@@ -349,7 +349,20 @@
                     // Direct-update result messages
                     if (isset($_GET['direct-update']) && $activeTab === 'updates') {
                         $direct_result = sanitize_text_field($_GET['direct-update']);
-                        if ($direct_result === 'error') {
+                        if ($direct_result === 'success') {
+                            $installed_version = isset($_GET['version']) ? sanitize_text_field($_GET['version']) : '';
+                            echo '<div class="eventeule-message eventeule-message-success" style="background: #d4edda; border-left: 4px solid #28a745; padding: 12px 15px; margin: 15px 0; border-radius: 4px;">';
+                            echo '<p style="margin: 0;"><strong>';
+                            if ($installed_version !== '') {
+                                printf(
+                                    esc_html__('Plugin successfully updated to version %s!', 'eventeule'),
+                                    esc_html($installed_version)
+                                );
+                            } else {
+                                esc_html_e('Plugin successfully updated!', 'eventeule');
+                            }
+                            echo '</strong></p></div>';
+                        } elseif ($direct_result === 'error') {
                             $error_detail = isset($_GET['error-detail']) ? sanitize_text_field($_GET['error-detail']) : '';
                             echo '<div class="eventeule-message eventeule-message-error" style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 12px 15px; margin: 15px 0; border-radius: 4px;">';
                             echo '<p style="margin: 0;"><strong>' . esc_html__('Direct update failed.', 'eventeule') . '</strong>';
