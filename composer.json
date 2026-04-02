@@ -2,7 +2,7 @@
   "name": "twicemind/eventeule",
   "description": "WordPress Event Plugin",
   "type": "wordpress-plugin",
-  "version": "2.6.4",
+  "version": "2.6.5",
   "require": {
     "yahnis-elsts/plugin-update-checker": "^5.3"
   },
