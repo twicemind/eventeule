@@ -335,3 +335,285 @@ msgstr "Details: %s"
 
 msgid "View in Updates Dashboard"
 msgstr "Im Updates-Dashboard ansehen"
+
+# Registration system – meta box
+msgid "Event Registrations"
+msgstr "Veranstaltungsanmeldungen"
+
+msgid "Enable registration for this event"
+msgstr "Anmeldung für diese Veranstaltung aktivieren"
+
+msgid "Max. registrations"
+msgstr "Max. Anmeldungen"
+
+msgid "0 or empty = unlimited"
+msgstr "0 oder leer = unbegrenzt"
+
+msgid "Thank you text"
+msgstr "Dankestext"
+
+msgid "Displayed to the user after successful registration."
+msgstr "Wird dem Nutzer nach erfolgreicher Anmeldung angezeigt."
+
+msgid "Notification email"
+msgstr "Benachrichtigungs-E-Mail"
+
+msgid "Email address to notify on new registrations. Defaults to admin email."
+msgstr "E-Mail-Adresse für Benachrichtigungen bei neuen Anmeldungen. Standard: Admin-E-Mail."
+
+msgid "Registration fields"
+msgstr "Anmeldefelder"
+
+msgid "Field"
+msgstr "Feld"
+
+msgid "Show"
+msgstr "Anzeigen"
+
+msgid "Required"
+msgstr "Pflichtfeld"
+
+msgid "Required only applies if the field is also shown."
+msgstr "Pflichtfeld gilt nur, wenn das Feld auch angezeigt wird."
+
+msgid "Spots"
+msgstr "Plätze"
+
+msgid "View Registrations"
+msgstr "Anmeldungen ansehen"
+
+# Registration system – form fields
+msgid "First name"
+msgstr "Vorname"
+
+msgid "Last name"
+msgstr "Nachname"
+
+msgid "Phone"
+msgstr "Telefon"
+
+msgid "Message"
+msgstr "Nachricht"
+
+msgid "Number of participants"
+msgstr "Anzahl der Teilnehmer"
+
+msgid "Email"
+msgstr "E-Mail"
+
+# Registration system – frontend messages
+msgid "Please enter a valid email address."
+msgstr "Bitte gib eine gültige E-Mail-Adresse an."
+
+msgid "Security check failed. Please reload the page and try again."
+msgstr "Sicherheitscheck fehlgeschlagen. Bitte lade die Seite neu und versuche es erneut."
+
+msgid "Registration is not available for this event."
+msgstr "Für diese Veranstaltung ist keine Anmeldung verfügbar."
+
+msgid "Invalid event."
+msgstr "Ungültige Veranstaltung."
+
+msgid "Sorry, this event is fully booked."
+msgstr "Diese Veranstaltung ist leider ausgebucht."
+
+msgid "This email address is already registered for this event."
+msgstr "Diese E-Mail-Adresse ist bereits für diese Veranstaltung angemeldet."
+
+msgid "The field %s is required."
+msgstr "Das Feld %s ist ein Pflichtfeld."
+
+msgid "Registration failed. Please try again."
+msgstr "Anmeldung fehlgeschlagen. Bitte versuche es erneut."
+
+msgid "Thank you for your registration! You will receive a confirmation email shortly."
+msgstr "Danke für deine Anmeldung! Du erhältst in Kürze eine Bestätigungs-E-Mail."
+
+msgid "Thank you for your registration! You will receive a confirmation email."
+msgstr "Danke für deine Anmeldung! Du erhältst eine Bestätigungs-E-Mail."
+
+# Registration confirmation email
+msgid "Registration confirmed: %s"
+msgstr "Anmeldung bestätigt: %s"
+
+msgid "Dear %s"
+msgstr "Liebe/r %s"
+
+msgid "Your registration for %s has been confirmed."
+msgstr "Deine Anmeldung für %s wurde bestätigt."
+
+msgid "Number of participants: %d"
+msgstr "Anzahl der Teilnehmer: %d"
+
+msgid "Best regards"
+msgstr "Mit freundlichen Grüßen"
+
+# Registration admin notification email
+msgid "New registration: %s"
+msgstr "Neue Anmeldung: %s"
+
+msgid "New registration for the event %s:"
+msgstr "Neue Anmeldung für die Veranstaltung %s:"
+
+msgid "Email:"
+msgstr "E-Mail:"
+
+msgid "Name:"
+msgstr "Name:"
+
+msgid "Phone:"
+msgstr "Telefon:"
+
+msgid "Participants:"
+msgstr "Teilnehmer:"
+
+msgid "Message:"
+msgstr "Nachricht:"
+
+msgid "View registrations: %s"
+msgstr "Anmeldungen ansehen: %s"
+
+# Registrations admin list
+msgid "Anmeldungen"
+msgstr "Anmeldungen"
+
+msgid "Veranstaltung bearbeiten"
+msgstr "Veranstaltung bearbeiten"
+
+msgid "— Alle Veranstaltungen —"
+msgstr "— Alle Veranstaltungen —"
+
+msgid "Filtern"
+msgstr "Filtern"
+
+msgid "CSV exportieren"
+msgstr "CSV exportieren"
+
+msgid "%d Anmeldung"
+msgid_plural "%d Anmeldungen"
+msgstr[0] "%d Anmeldung"
+msgstr[1] "%d Anmeldungen"
+
+msgid "%d registration"
+msgid_plural "%d registrations"
+msgstr[0] "%d Anmeldung"
+msgstr[1] "%d Anmeldungen"
+
+msgid "%d spot booked"
+msgid_plural "%d spots booked"
+msgstr[0] "%d Platz belegt"
+msgstr[1] "%d Plätze belegt"
+
+msgid "Veranstaltung absagen"
+msgstr "Veranstaltung absagen"
+
+msgid "Veranstaltung absagen\xe2\x80\xa6"
+msgstr "Veranstaltung absagen\xe2\x80\xa6"
+
+msgid "Die Veranstaltung wird als abgesagt markiert. Optional werden alle Angemeldeten per E-Mail informiert."
+msgstr "Die Veranstaltung wird als abgesagt markiert. Optional werden alle Angemeldeten per E-Mail informiert."
+
+msgid "Absagetext (optional)"
+msgstr "Absagetext (optional)"
+
+msgid "Absage-E-Mail an %d angemeldete Person senden"
+msgid_plural "Absage-E-Mail an %d angemeldete Personen senden"
+msgstr[0] "Absage-E-Mail an %d angemeldete Person senden"
+msgstr[1] "Absage-E-Mail an %d angemeldete Personen senden"
+
+msgid "Jetzt absagen"
+msgstr "Jetzt absagen"
+
+msgid "Veranstaltung wirklich absagen?"
+msgstr "Veranstaltung wirklich absagen?"
+
+msgid "Abgesagt"
+msgstr "Abgesagt"
+
+msgid "Diese Veranstaltung wurde abgesagt."
+msgstr "Diese Veranstaltung wurde abgesagt."
+
+msgid "Noch keine Anmeldungen vorhanden."
+msgstr "Noch keine Anmeldungen vorhanden."
+
+msgid "Veranstaltung"
+msgstr "Veranstaltung"
+
+msgid "Angemeldet am"
+msgstr "Angemeldet am"
+
+msgid "Aktionen"
+msgstr "Aktionen"
+
+msgid "Pers."
+msgstr "Pers."
+
+msgid "Antworten"
+msgstr "Antworten"
+
+msgid "Anmeldung wirklich löschen?"
+msgstr "Anmeldung wirklich löschen?"
+
+msgid "Löschen"
+msgstr "Löschen"
+
+msgid "E-Mail senden an"
+msgstr "E-Mail senden an"
+
+msgid "An:"
+msgstr "An:"
+
+msgid "Betreff"
+msgstr "Betreff"
+
+msgid "Nachricht"
+msgstr "Nachricht"
+
+msgid "Abbrechen"
+msgstr "Abbrechen"
+
+msgid "E-Mail senden"
+msgstr "E-Mail senden"
+
+msgid "Bezüglich deiner Anmeldung"
+msgstr "Bezüglich deiner Anmeldung"
+
+msgid "Anmeldung wurde gelöscht."
+msgstr "Anmeldung wurde gelöscht."
+
+msgid "Antwort wurde erfolgreich versendet."
+msgstr "Antwort wurde erfolgreich versendet."
+
+msgid "Veranstaltung wurde abgesagt. Die Teilnehmer/-innen wurden per E-Mail informiert."
+msgstr "Veranstaltung wurde abgesagt. Die Teilnehmer/-innen wurden per E-Mail informiert."
+
+msgid "Fehler beim Senden der Antwort. Bitte prüfe die E-Mail-Adresse."
+msgstr "Fehler beim Senden der Antwort. Bitte prüfe die E-Mail-Adresse."
+
+msgid "Du hast keine Berechtigung für diese Seite."
+msgstr "Du hast keine Berechtigung für diese Seite."
+
+msgid "Du hast keine Berechtigung für diese Aktion."
+msgstr "Du hast keine Berechtigung für diese Aktion."
+
+# Cancellation email
+msgid "Absage: %s"
+msgstr "Absage: %s"
+
+msgid "Liebe/r %s,"
+msgstr "Liebe/r %s,"
+
+msgid "Hallo,"
+msgstr "Hallo,"
+
+msgid "wir müssen dir leider mitteilen, dass die Veranstaltung \xe2\x80\x9e%s\xe2\x80\x9c abgesagt wurde."
+msgstr "wir müssen dir leider mitteilen, dass die Veranstaltung \xe2\x80\x9e%s\xe2\x80\x9c abgesagt wurde."
+
+msgid "Ursprüngliches Datum:"
+msgstr "Ursprüngliches Datum:"
+
+msgid "Wir entschuldigen uns für die Unannehmlichkeiten."
+msgstr "Wir entschuldigen uns für die Unannehmlichkeiten."
+
+msgid "Mit freundlichen Grüßen,\n%s"
+msgstr "Mit freundlichen Grüßen,\n%s"
