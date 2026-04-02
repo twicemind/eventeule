@@ -247,12 +247,10 @@ class Updater
     /**
      * Handle direct update from GitHub.
      *
-     * Downloads the latest release ZIP, extracts it, and copies the files
-     * directly over the existing plugin directory using WP_Filesystem.
-     * This approach never deactivates the plugin, which avoids the
-     * "Cannot redeclare class" / inactive-after-upgrade problem that occurs
-     * when Plugin_Upgrader deactivates and we try to re-activate in the same
-     * PHP process.
+     * Downloads the latest release ZIP, extracts it with PHP's ZipArchive,
+     * and replaces the plugin directory using an atomic rename sequence.
+     * Uses only native PHP file operations – no WP_Filesystem dependency,
+     * no Plugin_Upgrader deactivation, no "Cannot redeclare class" issues.
      */
     public function handle_direct_update(): void
     {
@@ -309,7 +307,6 @@ class Updater
         if (empty($download_url)) {
             $download_url = $body['zipball_url'] ?? null;
         }
-
         if (empty($download_url)) {
             $this->redirect_update_error('No download URL found for release v' . $latest_version);
         }
@@ -318,75 +315,102 @@ class Updater
             error_log('EventEule: Direct update – downloading v' . $latest_version . ' from ' . $download_url);
         }
 
-        // ── 3. Download & extract ZIP ────────────────────────────────────────
+        // ── 3. Download ZIP ──────────────────────────────────────────────────
         require_once ABSPATH . 'wp-admin/includes/file.php';
-        require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
-        WP_Filesystem();
-        global $wp_filesystem;
-
-        // download_url() saves ZIP to a temp file
         $zip_file = download_url($download_url, 60);
         if (is_wp_error($zip_file)) {
             $this->redirect_update_error('Download failed: ' . $zip_file->get_error_message());
         }
 
-        // Extract to a dedicated temp directory
-        $tmp_dir = WP_CONTENT_DIR . '/upgrade/eventeule-update-' . time();
-        wp_mkdir_p($tmp_dir);
-
-        $unzip = unzip_file($zip_file, $tmp_dir);
-        @unlink($zip_file); // remove downloaded ZIP regardless of result
-
-        if (is_wp_error($unzip)) {
-            $wp_filesystem->delete($tmp_dir, true);
-            $this->redirect_update_error('Extraction failed: ' . $unzip->get_error_message());
+        // ── 4. Extract with ZipArchive ───────────────────────────────────────
+        $tmp_dir = WP_CONTENT_DIR . '/upgrade/eventeule-tmp-' . time();
+        if (!wp_mkdir_p($tmp_dir)) {
+            @unlink($zip_file);
+            $this->redirect_update_error('Could not create temporary directory');
         }
 
-        // ── 4. Locate EventEule.php inside extracted directory ───────────────
-        // GitHub source ZIPs place files inside a subdirectory like
-        // "twicemind-eventeule-abc123/" while release asset ZIPs may place
-        // them at the root level.
+        if (!class_exists('ZipArchive')) {
+            @unlink($zip_file);
+            $this->rmdir_recursive($tmp_dir);
+            $this->redirect_update_error('PHP ZipArchive extension is not available on this server');
+        }
+
+        $zip = new \ZipArchive();
+        $opened = $zip->open($zip_file);
+        if ($opened !== true) {
+            @unlink($zip_file);
+            $this->rmdir_recursive($tmp_dir);
+            $this->redirect_update_error('Could not open ZIP file (ZipArchive error ' . $opened . ')');
+        }
+
+        $zip->extractTo($tmp_dir);
+        $zip->close();
+        @unlink($zip_file);
+
+        // ── 5. Locate EventEule.php inside extracted content ─────────────────
+        // The GitHub Actions ZIP has files at root level (no subdirectory).
+        // Fallback: handle ZIPs that do have a subdirectory.
         $source_dir = '';
 
-        foreach ((array) glob($tmp_dir . '/*', GLOB_ONLYDIR) as $dir) {
-            if (file_exists($dir . '/EventEule.php')) {
-                $source_dir = $dir;
-                break;
+        if (file_exists($tmp_dir . '/EventEule.php')) {
+            // Files are at the root of the extracted directory
+            $source_dir = $tmp_dir;
+        } else {
+            // Files are inside a subdirectory
+            foreach ((array) glob($tmp_dir . '/*', GLOB_ONLYDIR) as $dir) {
+                if (file_exists($dir . '/EventEule.php')) {
+                    $source_dir = $dir;
+                    break;
+                }
             }
         }
 
-        if (empty($source_dir) && file_exists($tmp_dir . '/EventEule.php')) {
-            $source_dir = $tmp_dir;
-        }
-
         if (empty($source_dir)) {
-            $wp_filesystem->delete($tmp_dir, true);
+            $this->rmdir_recursive($tmp_dir);
             $this->redirect_update_error('EventEule.php not found in the downloaded release ZIP');
         }
 
-        // ── 5. Copy new files over existing plugin directory ─────────────────
-        // copy_dir() merges the source INTO the destination, overwriting
-        // existing files. The plugin remains in active_plugins the entire
-        // time – no deactivation/reactivation needed.
+        // ── 6. Atomic directory replacement ─────────────────────────────────
+        // Strategy: copy into a staging dir, then rename-swap with existing dir.
+        // rename() on the same filesystem is atomic and avoids partial states.
         $plugin_dir  = WP_PLUGIN_DIR . '/eventeule';
-        $copy_result = copy_dir($source_dir, $plugin_dir);
+        $staging_dir = WP_PLUGIN_DIR . '/eventeule-staging-' . time();
+        $backup_dir  = WP_PLUGIN_DIR . '/eventeule-backup-' . time();
 
-        $wp_filesystem->delete($tmp_dir, true);
-
-        if (is_wp_error($copy_result)) {
-            $this->redirect_update_error('Install failed: ' . $copy_result->get_error_message());
+        // Copy extracted files into staging directory
+        if (!$this->copy_dir_native($source_dir, $staging_dir)) {
+            $this->rmdir_recursive($tmp_dir);
+            $this->rmdir_recursive($staging_dir);
+            $this->redirect_update_error('Failed to copy new plugin files to staging directory');
         }
+
+        // Cleanup temp extraction dir
+        $this->rmdir_recursive($tmp_dir);
+
+        // Swap: backup old → install new
+        if (!rename($plugin_dir, $backup_dir)) {
+            $this->rmdir_recursive($staging_dir);
+            $this->redirect_update_error('Failed to back up existing plugin directory');
+        }
+
+        if (!rename($staging_dir, $plugin_dir)) {
+            // Rollback: restore old plugin
+            rename($backup_dir, $plugin_dir);
+            $this->rmdir_recursive($staging_dir);
+            $this->redirect_update_error('Failed to move new plugin into place (rollback performed)');
+        }
+
+        // Remove backup
+        $this->rmdir_recursive($backup_dir);
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('EventEule: Direct update to v' . $latest_version . ' completed (files replaced, plugin stays active)');
+            error_log('EventEule: Direct update to v' . $latest_version . ' completed – directory replaced, plugin remains active');
         }
 
-        // ── 6. Clear caches ──────────────────────────────────────────────────
+        // ── 7. Clear caches ──────────────────────────────────────────────────
         delete_transient('eventeule_latest_github_version');
 
-        // Remove our entry from the update transient so WP no longer shows
-        // a pending update notification for this plugin.
         $current = get_site_transient('update_plugins');
         if (is_object($current) && isset($current->response)) {
             $plugin_file = plugin_basename(EVENTEULE_FILE);
@@ -399,6 +423,70 @@ class Updater
             admin_url('admin.php?page=eventeule')
         ));
         exit;
+    }
+
+    /**
+     * Recursively copy a directory using native PHP (no WP_Filesystem).
+     */
+    private function copy_dir_native(string $from, string $to): bool
+    {
+        if (!is_dir($to) && !mkdir($to, 0755, true)) {
+            return false;
+        }
+
+        $items = scandir($from);
+        if ($items === false) {
+            return false;
+        }
+
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+            $src = $from . DIRECTORY_SEPARATOR . $item;
+            $dst = $to . DIRECTORY_SEPARATOR . $item;
+
+            if (is_dir($src)) {
+                if (!$this->copy_dir_native($src, $dst)) {
+                    return false;
+                }
+            } else {
+                if (!copy($src, $dst)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Recursively delete a directory using native PHP.
+     */
+    private function rmdir_recursive(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+
+        $items = scandir($dir);
+        if ($items === false) {
+            return;
+        }
+
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+            $path = $dir . DIRECTORY_SEPARATOR . $item;
+            if (is_dir($path)) {
+                $this->rmdir_recursive($path);
+            } else {
+                @unlink($path);
+            }
+        }
+
+        @rmdir($dir);
     }
 
     /**
