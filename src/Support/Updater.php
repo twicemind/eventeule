@@ -181,7 +181,10 @@ class Updater
                     // Save the transient
                     set_site_transient('update_plugins', $current);
                     
-                    // Log success
+                    // Clear the cached GitHub version so the Direct Update section
+                    // immediately reflects the newly discovered version.
+                    delete_transient('eventeule_latest_github_version');
+
                     if (defined('WP_DEBUG') && WP_DEBUG) {
                         error_log('EventEule: Manually set update transient for version ' . $update->version);
                     }

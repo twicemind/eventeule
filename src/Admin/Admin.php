@@ -241,9 +241,28 @@ class Admin
     private function get_latest_github_version(): ?string
     {
         $transient_key = 'eventeule_latest_github_version';
+
+        // If the WordPress update transient already knows about a newer version
+        // (e.g. from a manual check), trust that and skip/update our own cache.
+        $wp_transient = get_site_transient('update_plugins');
+        $plugin_file  = plugin_basename(EVENTEULE_FILE);
+        $wp_version   = isset($wp_transient->response[$plugin_file]->new_version)
+            ? (string) $wp_transient->response[$plugin_file]->new_version
+            : null;
+
         $cached = get_transient($transient_key);
+        $cached_version = ($cached !== false && $cached !== '') ? (string) $cached : null;
+
+        // Pick the highest version we know about from any source
+        $best = $cached_version;
+        if ($wp_version !== null && ($best === null || version_compare($wp_version, $best, '>'))) {
+            $best = $wp_version;
+            // Update the transient so subsequent loads are also correct
+            set_transient($transient_key, $best, HOUR_IN_SECONDS);
+        }
+
         if ($cached !== false) {
-            return $cached === '' ? null : (string) $cached;
+            return $best;
         }
 
         $token = get_option('eventeule_github_token', '');
