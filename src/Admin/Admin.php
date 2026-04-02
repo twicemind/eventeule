@@ -52,23 +52,22 @@ class Admin
 
     public function render_page(): void
     {
-        // Speichere Tab-Status
-        $activeTab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'overview';
-        
+        $activeSection = isset($_GET['nav']) ? sanitize_text_field($_GET['nav']) : 'dashboard';
+
         $stats = $this->get_statistics();
         $upcomingEvents = $this->eventRepository->get_events([
             'limit' => 5,
             'show_past' => false,
         ]);
-        
+
         // Get all events for calendar view
         $calendarEvents = $this->get_calendar_events();
-        
-        // Hole gespeicherte Einstellungen
+
+        // Saved settings
         $settings = $this->get_settings();
 
-        // Only query GitHub when the Updates tab is active
-        $latestGithubVersion = ($activeTab === 'updates') ? $this->get_latest_github_version() : null;
+        // Only query GitHub when the Einstellungen section is active
+        $latestGithubVersion = ($activeSection === 'einstellungen') ? $this->get_latest_github_version() : null;
 
         $template = EVENTEULE_PATH . 'templates/admin/dashboard.php';
 
@@ -317,8 +316,8 @@ class Admin
         update_option('eventeule_widget_colors', $colors);
 
         wp_redirect(add_query_arg([
-            'page' => 'eventeule',
-            'tab' => 'settings',
+            'page'    => 'eventeule',
+            'nav'     => 'einstellungen',
             'message' => 'saved',
         ], admin_url('admin.php')));
         exit;

@@ -32,6 +32,15 @@ body.toplevel_page_eventeule.elementor-has-popup {
     overflow: auto !important;
 }
 
+/* Remove WP content-area padding so the sidebar can go edge-to-edge */
+.toplevel_page_eventeule #wpbody-content,
+.toplevel_page_eventeule #wpcontent {
+    padding-left: 0;
+}
+.toplevel_page_eventeule #wpbody-content > .wrap {
+    margin: 0;
+}
+
 :root {
     --ee-primary: #6366f1;
     --ee-primary-dark: #4f46e5;
@@ -48,90 +57,138 @@ body.toplevel_page_eventeule.elementor-has-popup {
     --ee-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 }
 
-/* Dashboard Container */
-.eventeule-dashboard {
-    max-width: 1400px;
-    margin: 20px 20px 20px 0;
+/* ─── App Shell ─── */
+.ee-app {
+    display: flex;
+    margin: -10px -20px -20px -20px;
+    min-height: calc(100vh - 32px);
+    background: var(--ee-bg);
 }
 
-/* Header */
-.eventeule-header {
-    background: linear-gradient(135deg, var(--ee-primary) 0%, var(--ee-secondary) 100%);
-    color: white;
-    padding: 32px;
-    border-radius: 12px;
-    margin-bottom: 24px;
-    box-shadow: var(--ee-shadow-lg);
+/* ─── Sidebar ─── */
+.ee-sidebar {
+    width: 240px;
+    min-width: 240px;
+    background: #1e1e38;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
 }
 
-.eventeule-logo {
+.ee-sidebar-header {
     display: flex;
     align-items: center;
     gap: 12px;
+    padding: 24px 20px;
+    background: linear-gradient(135deg, var(--ee-primary) 0%, var(--ee-secondary) 100%);
+    color: #fff;
 }
 
-.eventeule-logo .dashicons {
-    font-size: 48px;
-    width: 48px;
-    height: 48px;
+.ee-sidebar-header .dashicons {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
 }
 
-.eventeule-logo h1 {
+.ee-sidebar-header strong {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
     margin: 0;
     font-size: 36px;
     font-weight: 700;
     color: white;
 }
 
-.eventeule-tagline {
-    margin: 8px 0 0 60px;
-    font-size: 16px;
-    opacity: 0.9;
+.ee-sidebar-version {
+    display: block;
+    font-size: 11px;
+    opacity: 0.75;
+    margin-top: 2px;
 }
 
-/* Tab Navigation */
-.eventeule-tabs {
+/* Sidebar Nav */
+.ee-sidebar-nav {
+    flex: 1;
+    padding: 16px 0;
+    overflow-y: auto;
+}
+
+.ee-nav-item {
     display: flex;
-    gap: 8px;
-    margin-bottom: 24px;
-    background: var(--ee-card-bg);
-    padding: 8px;
-    border-radius: 12px;
-    box-shadow: var(--ee-shadow);
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: rgba(255, 255, 255, 0.65);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
-.eventeule-tab {
+.ee-nav-item .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.ee-nav-item:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.ee-nav-item.is-active {
+    color: #fff;
+    background: rgba(99, 102, 241, 0.25);
+    border-left-color: var(--ee-primary);
+}
+
+/* Sidebar Footer */
+.ee-sidebar-footer {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--ee-text-light);
-    text-decoration: none;
-    transition: all 0.2s;
+    padding: 16px 20px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.eventeule-tab .dashicons {
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
+.ee-sidebar-footer .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
 }
 
-.eventeule-tab:hover {
+/* Main Content Area */
+.ee-main {
+    flex: 1;
+    min-width: 0;
+    padding: 32px;
+    overflow-y: auto;
     background: var(--ee-bg);
+}
+
+/* Section Header */
+.ee-section-header {
+    margin-bottom: 28px;
+}
+
+.ee-section-header h1 {
+    margin: 0 0 6px;
+    font-size: 26px;
+    font-weight: 700;
     color: var(--ee-text);
+    line-height: 1.2;
 }
 
-.eventeule-tab.active {
-    background: var(--ee-primary);
-    color: white;
-}
-
-.eventeule-tab.active:hover {
-    background: var(--ee-primary-dark);
-    color: white;
+.ee-section-header p {
+    margin: 0;
+    color: var(--ee-text-light);
+    font-size: 14px;
 }
 
 /* Card Container */
@@ -592,48 +649,65 @@ body.toplevel_page_eventeule.elementor-has-popup {
 }
 
 /* Responsive Design */
+@media screen and (max-width: 960px) {
+    .ee-sidebar {
+        width: 200px;
+        min-width: 200px;
+    }
+    .ee-main {
+        padding: 20px;
+    }
+}
+
 @media screen and (max-width: 782px) {
-    .eventeule-dashboard {
-        margin: 10px 10px 10px 0;
-    }
-    
-    .eventeule-header {
-        padding: 24px;
-    }
-    
-    .eventeule-logo h1 {
-        font-size: 28px;
-    }
-    
-    .eventeule-tabs {
+    .ee-app {
         flex-direction: column;
+        margin: -10px -10px -10px -10px;
     }
-    
-    .eventeule-tab {
+    .ee-sidebar {
+        width: 100%;
+        min-width: unset;
+    }
+    .ee-sidebar-nav {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 8px;
+        gap: 4px;
+    }
+    .ee-nav-item {
+        border-left: none;
+        border-bottom: 3px solid transparent;
+        border-radius: 6px;
+        padding: 8px 14px;
+        flex: 1;
         justify-content: center;
     }
-    
+    .ee-nav-item.is-active {
+        border-left-color: transparent;
+        border-bottom-color: var(--ee-primary);
+    }
+    .ee-sidebar-footer {
+        display: none;
+    }
+    .ee-main {
+        padding: 16px;
+    }
     .eventeule-stats {
         grid-template-columns: 1fr;
     }
-    
     .eventeule-action-grid {
         grid-template-columns: 1fr;
     }
-    
     .eventeule-event-item {
         flex-direction: column;
         align-items: flex-start;
     }
-    
     .eventeule-event-actions {
         width: 100%;
     }
-    
     .eventeule-event-actions .button {
         flex: 1;
     }
-    
     .eventeule-color-grid {
         grid-template-columns: 1fr;
     }
