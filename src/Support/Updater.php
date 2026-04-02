@@ -245,9 +245,14 @@ class Updater
     }
 
     /**
-     * Handle direct update from GitHub: fetches the latest release ZIP and
-     * installs it using WordPress's Plugin_Upgrader – no redirect to update.php,
-     * no nonce-in-URL issues.
+     * Handle direct update from GitHub.
+     *
+     * Downloads the latest release ZIP, extracts it, and copies the files
+     * directly over the existing plugin directory using WP_Filesystem.
+     * This approach never deactivates the plugin, which avoids the
+     * "Cannot redeclare class" / inactive-after-upgrade problem that occurs
+     * when Plugin_Upgrader deactivates and we try to re-activate in the same
+     * PHP process.
      */
     public function handle_direct_update(): void
     {
@@ -259,7 +264,7 @@ class Updater
 
         // ── 1. Fetch latest release info from GitHub ────────────────────────
         $api_url = 'https://api.github.com/repos/twicemind/eventeule/releases/latest';
-        $args = [
+        $request_args = [
             'headers' => [
                 'User-Agent' => 'EventEule-WordPress-Plugin/' . EVENTEULE_VERSION,
                 'Accept'     => 'application/vnd.github.v3+json',
@@ -270,10 +275,10 @@ class Updater
 
         $token = $this->get_github_token();
         if (!empty($token)) {
-            $args['headers']['Authorization'] = 'Bearer ' . $token;
+            $request_args['headers']['Authorization'] = 'Bearer ' . $token;
         }
 
-        $response = wp_remote_get($api_url, $args);
+        $response = wp_remote_get($api_url, $request_args);
 
         if (is_wp_error($response)) {
             $this->redirect_update_error($response->get_error_message());
@@ -301,7 +306,6 @@ class Updater
                 }
             }
         }
-        // Fall back to GitHub's auto-generated source ZIP
         if (empty($download_url)) {
             $download_url = $body['zipball_url'] ?? null;
         }
@@ -311,98 +315,84 @@ class Updater
         }
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('EventEule: Direct update – installing v' . $latest_version . ' from ' . $download_url);
+            error_log('EventEule: Direct update – downloading v' . $latest_version . ' from ' . $download_url);
         }
 
-        // ── 3. Run the upgrade inline using Plugin_Upgrader ─────────────────
+        // ── 3. Download & extract ZIP ────────────────────────────────────────
+        require_once ABSPATH . 'wp-admin/includes/file.php';
         require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-        require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
-        $plugin_file = plugin_basename(EVENTEULE_FILE);
+        WP_Filesystem();
+        global $wp_filesystem;
 
-        // Inject the download URL into the update transient so Plugin_Upgrader
-        // can resolve it via upgrade().
-        $current = get_site_transient('update_plugins');
-        if (!is_object($current)) {
-            $current = new \stdClass();
-        }
-        if (!isset($current->response)) {
-            $current->response = [];
-        }
-        $current->response[$plugin_file] = (object) [
-            'slug'          => 'eventeule',
-            'plugin'        => $plugin_file,
-            'new_version'   => $latest_version,
-            'url'           => 'https://github.com/twicemind/eventeule',
-            'package'       => $download_url,
-            'tested'        => '',
-            'requires_php'  => '',
-            'compatibility' => new \stdClass(),
-        ];
-        $current->last_checked = time();
-        set_site_transient('update_plugins', $current);
-
-        // GitHub ZIPs are extracted as e.g. "eventeule-2.6.2/" or
-        // "twicemind-eventeule-abc123/". Rename the extracted folder to the
-        // canonical "eventeule/" so WordPress replaces the active plugin in-place
-        // and doesn't create a parallel, inactive copy.
-        $source_rename = function (string $source, string $remote_source) use (&$source_rename): string {
-            global $wp_filesystem;
-
-            $target = trailingslashit($remote_source) . 'eventeule';
-
-            if (rtrim($source, '/\\') !== $target) {
-                if (isset($wp_filesystem) && $wp_filesystem->move(rtrim($source, '/\\'), $target, true)) {
-                    if (defined('WP_DEBUG') && WP_DEBUG) {
-                        error_log('EventEule: Renamed extracted folder to ' . $target);
-                    }
-                    return trailingslashit($target);
-                }
-            }
-
-            return $source;
-        };
-
-        add_filter('upgrader_source_selection', $source_rename, 10, 2);
-
-        $skin     = new \WP_Ajax_Upgrader_Skin();
-        $upgrader = new \Plugin_Upgrader($skin);
-        $result   = $upgrader->upgrade($plugin_file);
-
-        remove_filter('upgrader_source_selection', $source_rename, 10);
-
-        // ── 4. Evaluate result and redirect ─────────────────────────────────
-        if (is_wp_error($result)) {
-            $this->redirect_update_error($result->get_error_message());
+        // download_url() saves ZIP to a temp file
+        $zip_file = download_url($download_url, 60);
+        if (is_wp_error($zip_file)) {
+            $this->redirect_update_error('Download failed: ' . $zip_file->get_error_message());
         }
 
-        if (is_wp_error($skin->result)) {
-            $this->redirect_update_error($skin->result->get_error_message());
+        // Extract to a dedicated temp directory
+        $tmp_dir = WP_CONTENT_DIR . '/upgrade/eventeule-update-' . time();
+        wp_mkdir_p($tmp_dir);
+
+        $unzip = unzip_file($zip_file, $tmp_dir);
+        @unlink($zip_file); // remove downloaded ZIP regardless of result
+
+        if (is_wp_error($unzip)) {
+            $wp_filesystem->delete($tmp_dir, true);
+            $this->redirect_update_error('Extraction failed: ' . $unzip->get_error_message());
         }
 
-        if ($result === false) {
-            $errors = $skin->get_upgrade_messages();
-            $detail = !empty($errors) ? implode(' ', $errors) : 'Unknown upgrade error';
-            $this->redirect_update_error($detail);
-        }
+        // ── 4. Locate EventEule.php inside extracted directory ───────────────
+        // GitHub source ZIPs place files inside a subdirectory like
+        // "twicemind-eventeule-abc123/" while release asset ZIPs may place
+        // them at the root level.
+        $source_dir = '';
 
-        // ── 5. Re-activate the plugin ────────────────────────────────────────
-        // Plugin_Upgrader deactivates the plugin before replacing files.
-        // WordPress does NOT re-activate it automatically, so we do it here.
-        $activate_result = activate_plugin($plugin_file);
-        if (is_wp_error($activate_result)) {
-            // Update succeeded but activation failed – still show success but log it
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('EventEule: Update OK but re-activation failed: ' . $activate_result->get_error_message());
-            }
-        } else {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('EventEule: Direct update to v' . $latest_version . ' completed and plugin re-activated');
+        foreach ((array) glob($tmp_dir . '/*', GLOB_ONLYDIR) as $dir) {
+            if (file_exists($dir . '/EventEule.php')) {
+                $source_dir = $dir;
+                break;
             }
         }
 
-        // Flush the GitHub version transient so the Updates tab reflects the new version
+        if (empty($source_dir) && file_exists($tmp_dir . '/EventEule.php')) {
+            $source_dir = $tmp_dir;
+        }
+
+        if (empty($source_dir)) {
+            $wp_filesystem->delete($tmp_dir, true);
+            $this->redirect_update_error('EventEule.php not found in the downloaded release ZIP');
+        }
+
+        // ── 5. Copy new files over existing plugin directory ─────────────────
+        // copy_dir() merges the source INTO the destination, overwriting
+        // existing files. The plugin remains in active_plugins the entire
+        // time – no deactivation/reactivation needed.
+        $plugin_dir  = WP_PLUGIN_DIR . '/eventeule';
+        $copy_result = copy_dir($source_dir, $plugin_dir);
+
+        $wp_filesystem->delete($tmp_dir, true);
+
+        if (is_wp_error($copy_result)) {
+            $this->redirect_update_error('Install failed: ' . $copy_result->get_error_message());
+        }
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('EventEule: Direct update to v' . $latest_version . ' completed (files replaced, plugin stays active)');
+        }
+
+        // ── 6. Clear caches ──────────────────────────────────────────────────
         delete_transient('eventeule_latest_github_version');
+
+        // Remove our entry from the update transient so WP no longer shows
+        // a pending update notification for this plugin.
+        $current = get_site_transient('update_plugins');
+        if (is_object($current) && isset($current->response)) {
+            $plugin_file = plugin_basename(EVENTEULE_FILE);
+            unset($current->response[$plugin_file]);
+            set_site_transient('update_plugins', $current);
+        }
 
         wp_safe_redirect(add_query_arg(
             ['direct-update' => 'success', 'version' => $latest_version, 'tab' => 'updates'],
