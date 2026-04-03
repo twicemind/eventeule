@@ -360,6 +360,7 @@ if (!defined('ABSPATH')) {
             <?php endif; ?>
 
         <!-- ─── EINSTELLUNGEN ─── -->
+        <?php elseif ($activeSection === 'einstellungen'): ?>
 
             <div class="ee-section-header">
                 <h1><?php esc_html_e('Settings', 'eventeule'); ?></h1>
