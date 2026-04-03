@@ -190,13 +190,13 @@ class Updater
                     }
                     
                     wp_redirect(add_query_arg(
-                        ['update-check' => 'available', 'version' => $update->version, 'tab' => 'updates'],
+                        ['update-check' => 'available', 'version' => $update->version, 'nav' => 'einstellungen'],
                         admin_url('admin.php?page=eventeule')
                     ));
                     exit;
                 } else {
                     wp_redirect(add_query_arg(
-                        ['update-check' => 'none', 'tab' => 'updates'],
+                        ['update-check' => 'none', 'nav' => 'einstellungen'],
                         admin_url('admin.php?page=eventeule')
                     ));
                     exit;
@@ -208,7 +208,7 @@ class Updater
                 }
                 
                 wp_redirect(add_query_arg(
-                    ['update-check' => 'error', 'error-detail' => urlencode($e->getMessage()), 'tab' => 'updates'],
+                    ['update-check' => 'error', 'error-detail' => urlencode($e->getMessage()), 'nav' => 'einstellungen'],
                     admin_url('admin.php?page=eventeule')
                 ));
                 exit;
@@ -220,7 +220,7 @@ class Updater
                 : 'Plugin Update Checker library not found. Please run: composer install';
                 
             wp_redirect(add_query_arg(
-                ['update-check' => 'error', 'error-detail' => urlencode($error_detail), 'tab' => 'updates'],
+                ['update-check' => 'error', 'error-detail' => urlencode($error_detail), 'nav' => 'einstellungen'],
                 admin_url('admin.php?page=eventeule')
             ));
             exit;
@@ -419,7 +419,7 @@ class Updater
         }
 
         wp_safe_redirect(add_query_arg(
-            ['direct-update' => 'success', 'version' => $latest_version, 'tab' => 'updates'],
+            ['direct-update' => 'success', 'version' => $latest_version, 'nav' => 'einstellungen'],
             admin_url('admin.php?page=eventeule')
         ));
         exit;
@@ -495,7 +495,7 @@ class Updater
     private function redirect_update_error(string $detail): never
     {
         wp_safe_redirect(add_query_arg(
-            ['direct-update' => 'error', 'error-detail' => rawurlencode($detail), 'tab' => 'updates'],
+            ['direct-update' => 'error', 'error-detail' => rawurlencode($detail), 'nav' => 'einstellungen'],
             admin_url('admin.php?page=eventeule')
         ));
         exit;
