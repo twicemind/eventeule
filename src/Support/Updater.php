@@ -260,6 +260,9 @@ class Updater
 
         check_admin_referer('eventeule_direct_update', 'eventeule_nonce');
 
+        // Allow enough time for download + extraction + file copy on slow hosting
+        @set_time_limit(300);
+
         // ── 1. Fetch latest release info from GitHub ────────────────────────
         $api_url = 'https://api.github.com/repos/twicemind/eventeule/releases/latest';
         $request_args = [
@@ -316,11 +319,39 @@ class Updater
         }
 
         // ── 3. Download ZIP ──────────────────────────────────────────────────
+        // Use wp_remote_get() with stream so we can pass the Authorization header.
+        // download_url() doesn't support custom headers and would silently download
+        // an HTML error page if the asset requires authentication.
         require_once ABSPATH . 'wp-admin/includes/file.php';
 
-        $zip_file = download_url($download_url, 60);
-        if (is_wp_error($zip_file)) {
-            $this->redirect_update_error('Download failed: ' . $zip_file->get_error_message());
+        $zip_file   = wp_tempnam('eventeule-update');
+        $dl_headers = [
+            'User-Agent' => 'EventEule-WordPress-Plugin/' . EVENTEULE_VERSION,
+            'Accept'     => 'application/octet-stream',
+        ];
+        if (!empty($token)) {
+            $dl_headers['Authorization'] = 'Bearer ' . $token;
+        }
+
+        $dl_response = wp_remote_get($download_url, [
+            'headers'     => $dl_headers,
+            'timeout'     => 120,
+            'stream'      => true,
+            'filename'    => $zip_file,
+            'redirection' => 5,
+        ]);
+
+        if (is_wp_error($dl_response)) {
+            @unlink($zip_file);
+            $this->redirect_update_error('Download failed: ' . $dl_response->get_error_message());
+        }
+
+        $dl_code = (int) wp_remote_retrieve_response_code($dl_response);
+        if ($dl_code !== 200) {
+            @unlink($zip_file);
+            $this->redirect_update_error(
+                sprintf('Download failed: HTTP %d for URL: %s', $dl_code, $download_url)
+            );
         }
 
         // ── 4. Extract with ZipArchive ───────────────────────────────────────
@@ -408,7 +439,24 @@ class Updater
             error_log('EventEule: Direct update to v' . $latest_version . ' completed – directory replaced, plugin remains active');
         }
 
-        // ── 7. Clear caches ──────────────────────────────────────────────────
+        // ── 7. Clear OPcache so new PHP files are executed on next request ────
+        // Without this, PHP serves the OLD bytecode from cache and the version
+        // number appears unchanged even though the files on disk are new.
+        if (function_exists('opcache_reset')) {
+            opcache_reset();
+        } elseif (function_exists('opcache_invalidate')) {
+            $rit = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($plugin_dir, \RecursiveDirectoryIterator::SKIP_DOTS)
+            );
+            foreach ($rit as $rfile) {
+                if ($rfile->isFile() && $rfile->getExtension() === 'php') {
+                    opcache_invalidate($rfile->getPathname(), true);
+                }
+            }
+        }
+        wp_cache_flush();
+
+        // ── 8. Clear update transients ───────────────────────────────────────
         delete_transient('eventeule_latest_github_version');
 
         $current = get_site_transient('update_plugins');

@@ -104,7 +104,10 @@ class RegistrationsAdmin
             $this->repository->delete($id);
         }
 
-        $redirect = admin_url('admin.php?page=eventeule-registrations&deleted=1');
+        $redirect = add_query_arg(
+            ['page' => 'eventeule', 'nav' => 'anmeldungen', 'deleted' => '1'],
+            admin_url('admin.php')
+        );
         if ($eventId > 0) {
             $redirect = add_query_arg('event_id', $eventId, $redirect);
         }
@@ -128,7 +131,10 @@ class RegistrationsAdmin
 
         $reg = $registrationId > 0 ? $this->repository->get_by_id($registrationId) : null;
 
-        $redirect = admin_url('admin.php?page=eventeule-registrations');
+        $redirect = add_query_arg(
+            ['page' => 'eventeule', 'nav' => 'anmeldungen'],
+            admin_url('admin.php')
+        );
         if ($eventId > 0) {
             $redirect = add_query_arg('event_id', $eventId, $redirect);
         }
@@ -162,7 +168,7 @@ class RegistrationsAdmin
 
         $eventId = (int) ($_POST['event_id'] ?? 0);
         if ($eventId <= 0) {
-            wp_safe_redirect(admin_url('admin.php?page=eventeule-registrations'));
+            wp_safe_redirect(add_query_arg(['page' => 'eventeule', 'nav' => 'anmeldungen'], admin_url('admin.php')));
             exit;
         }
 
@@ -179,8 +185,8 @@ class RegistrationsAdmin
         }
 
         wp_safe_redirect(add_query_arg(
-            ['event_id' => $eventId, 'cancelled' => '1'],
-            admin_url('admin.php?page=eventeule-registrations')
+            ['page' => 'eventeule', 'nav' => 'anmeldungen', 'event_id' => $eventId, 'cancelled' => '1'],
+            admin_url('admin.php')
         ));
         exit;
     }

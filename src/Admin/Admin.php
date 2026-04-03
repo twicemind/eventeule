@@ -24,6 +24,8 @@ class Admin
         add_action('admin_init', [$this, 'register_settings']);
         add_action('admin_post_eventeule_save_settings', [$this, 'save_settings']);
         add_action('admin_notices', [$this, 'hide_other_plugin_notices']);
+        // Redirect legacy standalone pages into the in-app sections
+        add_action('admin_init', [$this, 'redirect_legacy_pages']);
     }
 
     /**
@@ -51,6 +53,47 @@ class Admin
             'dashicons-calendar-alt',
             26
         );
+
+        // Hide native taxonomy + registrations submenu from the sidebar —
+        // they now live inside the EventEule app under nav=kategorien / nav=anmeldungen.
+        add_action('admin_head', function () {
+            echo '<style>
+                #menu-posts-eventeule_event .wp-submenu a[href*="taxonomy=eventeule_category"],
+                #menu-posts-eventeule_event .wp-submenu a[href*="page=eventeule-registrations"] {
+                    display: none !important;
+                }
+            </style>';
+        });
+    }
+
+    /**
+     * Redirect the legacy standalone Anmeldungen and Kategorien pages into
+     * the unified in-app sections so old bookmarks/links still work.
+     */
+    public function redirect_legacy_pages(): void
+    {
+        if (!is_admin() || !isset($_GET['page']) && !isset($_GET['taxonomy'])) {
+            return;
+        }
+
+        // eventeule-registrations → nav=anmeldungen
+        if (isset($_GET['page']) && $_GET['page'] === 'eventeule-registrations') {
+            $args = ['page' => 'eventeule', 'nav' => 'anmeldungen'];
+            if (!empty($_GET['event_id'])) {
+                $args['event_id'] = (int) $_GET['event_id'];
+            }
+            wp_safe_redirect(add_query_arg($args, admin_url('admin.php')));
+            exit;
+        }
+
+        // edit-tags.php?taxonomy=eventeule_category → nav=kategorien
+        if (isset($_GET['taxonomy']) && $_GET['taxonomy'] === 'eventeule_category'
+            && isset($_SERVER['PHP_SELF'])
+            && str_contains((string) $_SERVER['PHP_SELF'], 'edit-tags.php')
+        ) {
+            wp_safe_redirect(add_query_arg(['page' => 'eventeule', 'nav' => 'kategorien'], admin_url('admin.php')));
+            exit;
+        }
     }
 
     public function render_page(): void
@@ -94,6 +137,61 @@ class Admin
         }
 
         $allEventsForSection = $this->get_all_events_for_section($evtQueryArgs, $evtView);
+
+        // ── Anmeldungen section ────────────────────────────────────────────
+        $regEventId   = isset($_GET['event_id']) ? (int) $_GET['event_id'] : 0;
+        $regPaged     = isset($_GET['paged']) ? max(1, (int) $_GET['paged']) : 1;
+        $regPerPage   = 25;
+        $regOffset    = ($regPaged - 1) * $regPerPage;
+
+        if ($activeSection === 'anmeldungen') {
+            if ($regEventId > 0) {
+                $registrations    = $this->registrationRepository->get_all_by_event($regEventId, $regPerPage, $regOffset);
+                $regTotal         = $this->registrationRepository->count_all_by_event($regEventId);
+                $regEventTitle    = (string) get_the_title($regEventId);
+            } else {
+                $registrations    = $this->registrationRepository->get_all($regPerPage, $regOffset);
+                $regTotal         = $this->registrationRepository->count_all();
+                $regEventTitle    = '';
+            }
+            $regTotalPages = (int) ceil($regTotal / $regPerPage);
+            $regIsCancelled = $regEventId > 0 && get_post_meta($regEventId, '_eventeule_cancelled', true) === '1';
+
+            $regEventsQuery = new \WP_Query([
+                'post_type'      => EventPostType::POST_TYPE,
+                'post_status'    => ['publish', 'draft'],
+                'posts_per_page' => -1,
+                'meta_key'       => '_eventeule_reg_enabled',
+                'meta_value'     => '1',
+                'orderby'        => 'title',
+                'order'          => 'ASC',
+                'fields'         => 'ids',
+            ]);
+            $registrationEvents = $regEventsQuery->posts;
+
+            // Flash messages
+            $regNotice     = '';
+            $regNoticeType = 'success';
+            if (isset($_GET['deleted']) && $_GET['deleted'] === '1') {
+                $regNotice = __('Anmeldung wurde gelöscht.', 'eventeule');
+            } elseif (isset($_GET['replied']) && $_GET['replied'] === '1') {
+                $regNotice = __('Antwort wurde erfolgreich versendet.', 'eventeule');
+            } elseif (isset($_GET['cancelled']) && $_GET['cancelled'] === '1') {
+                $regNotice = __('Veranstaltung wurde abgesagt. Die Teilnehmer/-innen wurden per E-Mail informiert.', 'eventeule');
+            } elseif (isset($_GET['reply_error'])) {
+                $regNotice     = __('Fehler beim Senden der Antwort. Bitte prüfe die E-Mail-Adresse.', 'eventeule');
+                $regNoticeType = 'error';
+            }
+        } else {
+            $registrations      = [];
+            $regTotal           = 0;
+            $regTotalPages      = 0;
+            $regEventTitle      = '';
+            $regIsCancelled     = false;
+            $registrationEvents = [];
+            $regNotice          = '';
+            $regNoticeType      = 'success';
+        }
 
         // Pass registration repository to template
         $registrationRepository = $this->registrationRepository;

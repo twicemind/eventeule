@@ -3,7 +3,7 @@
  * Plugin Name: EventEule
  * Plugin URI: https://eventeule.twicemind.com
  * Description: WordPress Event Plugin for events, appointments and activities for Bücherei Huisheim
- * Version: 3.0.4
+ * Version: 3.1.0
  * Author: Thomas Herfort
  * Author URI: https://twicemind.com
  * Text Domain: eventeule
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('EVENTEULE_VERSION', '3.0.4');
+define('EVENTEULE_VERSION', '3.1.0');
 define('EVENTEULE_FILE', __FILE__);
 define('EVENTEULE_PATH', plugin_dir_path(__FILE__));
 define('EVENTEULE_URL', plugin_dir_url(__FILE__));
