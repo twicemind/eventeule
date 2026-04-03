@@ -210,21 +210,24 @@ if (!defined('ABSPATH')) {
                 </a>
             </div>
 
-            <!-- View-Switcher + Category-Filter -->
+            <!-- View-Switcher -->
             <div class="ee-view-bar">
                 <?php foreach ($evtLabels as $key => $label): ?>
-                    <a href="<?php echo esc_url(add_query_arg(['nav' => 'veranstaltungen', 'evtview' => $key, 'evtcat' => $evtCategory], admin_url('admin.php?page=eventeule'))); ?>"
+                    <a href="<?php echo esc_url(add_query_arg(
+                            ['nav' => 'veranstaltungen', 'evtview' => $key, 'evtcat' => ($key === 'category' ? $evtCategory : '')],
+                            admin_url('admin.php?page=eventeule')
+                        )); ?>"
                        class="ee-view-btn<?php echo $evtView === $key ? ' is-active' : ''; ?>">
                         <?php echo esc_html($label); ?>
                     </a>
                 <?php endforeach; ?>
 
-                <?php if (!empty($allCategories)): ?>
+                <?php if ($evtView === 'category' && !empty($allCategories)): ?>
                     <form method="get" action="<?php echo esc_url(admin_url('admin.php')); ?>"
                           class="ee-cat-filter">
                         <input type="hidden" name="page" value="eventeule">
                         <input type="hidden" name="nav"  value="veranstaltungen">
-                        <input type="hidden" name="evtview" value="<?php echo esc_attr($evtView); ?>">
+                        <input type="hidden" name="evtview" value="category">
                         <select name="evtcat" onchange="this.form.submit()">
                             <option value=""><?php esc_html_e('— Alle Kategorien —', 'eventeule'); ?></option>
                             <?php foreach ($allCategories as $cat): ?>
@@ -252,36 +255,111 @@ if (!defined('ABSPATH')) {
                 </div>
 
             <?php elseif ($evtView === 'calendar'): ?>
-                <!-- ── Kalenderansicht ── -->
-                <div class="eventeule-calendar">
-                    <?php foreach ($allEventsForSection as $month => $events): ?>
-                        <div class="eventeule-month-section">
-                            <h3 class="eventeule-month-title">
-                                <span class="dashicons dashicons-calendar-alt"></span>
-                                <?php echo esc_html(date_i18n('F Y', strtotime($month . '-01'))); ?>
-                                <span class="eventeule-month-count"><?php echo count($events); ?></span>
-                            </h3>
-                            <div class="eventeule-month-events">
-                                <?php foreach ($events as $evd): ?>
-                                    <?php echo $this->render_event_row($evd); ?>
-                                <?php endforeach; ?>
+
+                <?php
+                // Shared card renderer as a closure so we keep DRY without extra files
+                $renderCard = function (array $evd) use ($registrationRepository): void {
+                    $id          = (int) $evd['id'];
+                    $isCancelled = get_post_meta($id, '_eventeule_cancelled', true) === '1';
+                    $isPast      = !empty($evd['start_date']) && strtotime($evd['start_date']) < strtotime(current_time('Y-m-d'));
+                    $regCount    = $registrationRepository ? $registrationRepository->count_by_event($id) : 0;
+                    ?>
+                    <div class="ee-event-card<?php echo $isPast ? ' is-past' : ''; ?><?php echo $isCancelled ? ' is-cancelled' : ''; ?>">
+                        <div class="ee-event-card__date">
+                            <?php if (!empty($evd['start_date'])): ?>
+                                <span class="ee-date-day"><?php echo esc_html(date_i18n('d', strtotime($evd['start_date']))); ?></span>
+                                <span class="ee-date-month"><?php echo esc_html(date_i18n('M', strtotime($evd['start_date']))); ?></span>
+                                <span class="ee-date-year"><?php echo esc_html(date_i18n('Y', strtotime($evd['start_date']))); ?></span>
+                            <?php else: ?>
+                                <span class="ee-date-day">—</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="ee-event-card__info">
+                            <div class="ee-event-card__title-row">
+                                <h3><?php echo esc_html($evd['title']); ?></h3>
+                                <div class="ee-event-card__badges">
+                                    <?php if ($evd['featured']): ?>
+                                        <span class="ee-badge ee-badge--featured">
+                                            <span class="dashicons dashicons-star-filled"></span>
+                                        </span>
+                                    <?php endif; ?>
+                                    <?php if ($isCancelled): ?>
+                                        <span class="ee-badge ee-badge--cancelled"><?php esc_html_e('Abgesagt', 'eventeule'); ?></span>
+                                    <?php elseif ($isPast): ?>
+                                        <span class="ee-badge ee-badge--past"><?php esc_html_e('Vergangen', 'eventeule'); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="ee-event-card__meta">
+                                <?php if (!empty($evd['start_time'])): ?>
+                                    <span><span class="dashicons dashicons-clock"></span><?php echo esc_html($evd['start_time']); ?></span>
+                                <?php endif; ?>
+                                <?php if (!empty($evd['location'])): ?>
+                                    <span><span class="dashicons dashicons-location"></span><?php echo esc_html($evd['location']); ?></span>
+                                <?php endif; ?>
+                                <?php if (!empty($evd['categories'])): ?>
+                                    <span><span class="dashicons dashicons-category"></span>
+                                        <?php echo esc_html(implode(', ', array_map(fn($t) => $t->name, $evd['categories']))); ?>
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($regCount > 0): ?>
+                                    <span>
+                                        <span class="dashicons dashicons-groups"></span>
+                                        <a href="<?php echo esc_url(admin_url('admin.php?page=eventeule-registrations&event_id=' . $id)); ?>">
+                                            <?php printf(esc_html(_n('%d Anmeldung', '%d Anmeldungen', $regCount, 'eventeule')), $regCount); ?>
+                                        </a>
+                                    </span>
+                                <?php endif; ?>
                             </div>
                         </div>
-                    <?php endforeach; ?>
-                </div>
+                        <div class="ee-event-card__actions">
+                            <a href="<?php echo esc_url(get_edit_post_link($id)); ?>" class="button button-small">
+                                <span class="dashicons dashicons-edit"></span>
+                                <?php esc_html_e('Bearbeiten', 'eventeule'); ?>
+                            </a>
+                            <a href="<?php echo esc_url($evd['permalink']); ?>" class="button button-small" target="_blank">
+                                <span class="dashicons dashicons-external"></span>
+                                <?php esc_html_e('Ansehen', 'eventeule'); ?>
+                            </a>
+                            <?php if ($regCount > 0): ?>
+                                <a href="<?php echo esc_url(admin_url('admin.php?page=eventeule-registrations&event_id=' . $id)); ?>"
+                                   class="button button-small">
+                                    <span class="dashicons dashicons-groups"></span>
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <?php
+                };
+                ?>
+
+                <!-- ── Kalenderansicht: gleiche Cards, nach Monat gruppiert ── -->
+                <?php foreach ($allEventsForSection as $month => $monthEvents): ?>
+                    <div class="ee-month-group">
+                        <h3 class="ee-month-label">
+                            <span class="dashicons dashicons-calendar-alt"></span>
+                            <?php echo esc_html(date_i18n('F Y', strtotime($month . '-01'))); ?>
+                            <span class="eventeule-month-count"><?php echo count($monthEvents); ?></span>
+                        </h3>
+                        <div class="ee-event-list">
+                            <?php foreach ($monthEvents as $evd): ?>
+                                <?php $renderCard($evd); ?>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
 
             <?php else: ?>
-                <!-- ── Listen-/Upcoming-Ansicht ── -->
+                <!-- ── Listen-/Upcoming-/Kategorie-Ansicht ── -->
                 <div class="ee-event-list">
                     <?php foreach ($allEventsForSection as $event):
-                        $evd = $this->eventRepository->get_event_data($event);
-                        $regCount   = $registrationRepository ? $registrationRepository->count_by_event($event->ID) : 0;
-                        $isCancelled = get_post_meta($event->ID, '_eventeule_cancelled', true) === '1';
-                        $isPast     = !empty($evd['start_date']) && strtotime($evd['start_date']) < strtotime(current_time('Y-m-d'));
+                        $evd         = $this->eventRepository->get_event_data($event);
+                        $id          = $event->ID;
+                        $regCount    = $registrationRepository ? $registrationRepository->count_by_event($id) : 0;
+                        $isCancelled = get_post_meta($id, '_eventeule_cancelled', true) === '1';
+                        $isPast      = !empty($evd['start_date']) && strtotime($evd['start_date']) < strtotime(current_time('Y-m-d'));
                     ?>
                         <div class="ee-event-card<?php echo $isPast ? ' is-past' : ''; ?><?php echo $isCancelled ? ' is-cancelled' : ''; ?>">
-
-                            <!-- Date badge -->
                             <div class="ee-event-card__date">
                                 <?php if (!empty($evd['start_date'])): ?>
                                     <span class="ee-date-day"><?php echo esc_html(date_i18n('d', strtotime($evd['start_date']))); ?></span>
@@ -291,8 +369,6 @@ if (!defined('ABSPATH')) {
                                     <span class="ee-date-day">—</span>
                                 <?php endif; ?>
                             </div>
-
-                            <!-- Info -->
                             <div class="ee-event-card__info">
                                 <div class="ee-event-card__title-row">
                                     <h3><?php echo esc_html($evd['title']); ?></h3>
@@ -324,31 +400,24 @@ if (!defined('ABSPATH')) {
                                     <?php if ($regCount > 0): ?>
                                         <span>
                                             <span class="dashicons dashicons-groups"></span>
-                                            <a href="<?php echo esc_url(admin_url('admin.php?page=eventeule-registrations&event_id=' . $event->ID)); ?>">
-                                                <?php printf(
-                                                    esc_html(_n('%d Anmeldung', '%d Anmeldungen', $regCount, 'eventeule')),
-                                                    $regCount
-                                                ); ?>
+                                            <a href="<?php echo esc_url(admin_url('admin.php?page=eventeule-registrations&event_id=' . $id)); ?>">
+                                                <?php printf(esc_html(_n('%d Anmeldung', '%d Anmeldungen', $regCount, 'eventeule')), $regCount); ?>
                                             </a>
                                         </span>
                                     <?php endif; ?>
                                 </div>
                             </div>
-
-                            <!-- Actions -->
                             <div class="ee-event-card__actions">
-                                <a href="<?php echo esc_url(get_edit_post_link($event->ID)); ?>"
-                                   class="button button-small">
+                                <a href="<?php echo esc_url(get_edit_post_link($id)); ?>" class="button button-small">
                                     <span class="dashicons dashicons-edit"></span>
                                     <?php esc_html_e('Bearbeiten', 'eventeule'); ?>
                                 </a>
-                                <a href="<?php echo esc_url(get_permalink($event->ID)); ?>"
-                                   class="button button-small" target="_blank">
+                                <a href="<?php echo esc_url(get_permalink($id)); ?>" class="button button-small" target="_blank">
                                     <span class="dashicons dashicons-external"></span>
                                     <?php esc_html_e('Ansehen', 'eventeule'); ?>
                                 </a>
                                 <?php if ($regCount > 0): ?>
-                                    <a href="<?php echo esc_url(admin_url('admin.php?page=eventeule-registrations&event_id=' . $event->ID)); ?>"
+                                    <a href="<?php echo esc_url(admin_url('admin.php?page=eventeule-registrations&event_id=' . $id)); ?>"
                                        class="button button-small">
                                         <span class="dashicons dashicons-groups"></span>
                                     </a>

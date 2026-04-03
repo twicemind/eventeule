@@ -717,6 +717,39 @@ body.toplevel_page_eventeule.elementor-has-popup {
     gap: 12px;
 }
 
+/* ── New calendar view: month groups with ee-event-card design ── */
+.ee-month-group {
+    margin-bottom: 32px;
+}
+
+.ee-month-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 16px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ee-text);
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--ee-border);
+}
+
+.ee-month-label .dashicons {
+    color: var(--ee-primary);
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+}
+
+.ee-month-label .eventeule-month-count {
+    background: var(--ee-primary);
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
 .eventeule-calendar-event {
     display: flex;
     align-items: center;
