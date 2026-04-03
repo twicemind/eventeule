@@ -60,7 +60,7 @@ class Plugin
             $eventRepository       = new EventRepository();
             $registrationRepository = new RegistrationRepository();
 
-            $admin = new Admin($eventRepository);
+            $admin = new Admin($eventRepository, $registrationRepository);
             $admin->register();
 
             $metaBoxes = new EventMetaBoxes();

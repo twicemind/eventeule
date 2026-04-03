@@ -57,7 +57,226 @@ body.toplevel_page_eventeule.elementor-has-popup {
     --ee-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 }
 
-/* ─── App Shell ─── */
+/* ─── Action bar (above Veranstaltungen list) ─── */
+.ee-action-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.ee-action-bar .button .dashicons {
+    vertical-align: middle;
+    margin-right: 4px;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+/* ─── View switcher + category filter ─── */
+.ee-view-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    background: var(--ee-card-bg);
+    padding: 8px 12px;
+    border-radius: 8px;
+    box-shadow: var(--ee-shadow);
+    margin-bottom: 20px;
+}
+
+.ee-view-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ee-text-light);
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+
+.ee-view-btn:hover {
+    background: var(--ee-bg);
+    color: var(--ee-text);
+}
+
+.ee-view-btn.is-active {
+    background: var(--ee-primary);
+    color: #fff;
+    border-color: var(--ee-primary);
+}
+
+.ee-cat-filter {
+    margin-left: auto;
+}
+
+.ee-cat-filter select {
+    border: 1px solid var(--ee-border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 13px;
+    background: var(--ee-bg);
+    cursor: pointer;
+}
+
+/* ─── Event card (list/upcoming view) ─── */
+.ee-event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ee-event-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--ee-card-bg);
+    border: 1px solid var(--ee-border);
+    border-left: 4px solid var(--ee-primary);
+    border-radius: 8px;
+    padding: 14px 16px;
+    transition: box-shadow 0.15s;
+}
+
+.ee-event-card:hover {
+    box-shadow: var(--ee-shadow-lg);
+}
+
+.ee-event-card.is-past {
+    border-left-color: #9ca3af;
+    opacity: 0.8;
+}
+
+.ee-event-card.is-cancelled {
+    border-left-color: #dc3545;
+    background: #fff8f8;
+}
+
+/* Date badge */
+.ee-event-card__date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    background: linear-gradient(135deg, var(--ee-primary) 0%, var(--ee-primary-dark) 100%);
+    border-radius: 8px;
+    padding: 8px 6px;
+    color: #fff;
+    flex-shrink: 0;
+    text-align: center;
+}
+
+.ee-event-card.is-past    .ee-event-card__date { background: #9ca3af; }
+.ee-event-card.is-cancelled .ee-event-card__date { background: #dc3545; }
+
+.ee-date-day   { font-size: 22px; font-weight: 700; line-height: 1; }
+.ee-date-month { font-size: 11px; font-weight: 600; text-transform: uppercase; margin-top: 2px; }
+.ee-date-year  { font-size: 10px; opacity: 0.8; margin-top: 1px; }
+
+/* Info column */
+.ee-event-card__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.ee-event-card__title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.ee-event-card__title-row h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ee-text);
+}
+
+.ee-event-card__badges {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.ee-event-card__meta {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--ee-text-light);
+}
+
+.ee-event-card__meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ee-event-card__meta .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+}
+
+.ee-event-card__meta a {
+    color: var(--ee-primary);
+    text-decoration: none;
+}
+
+.ee-event-card__meta a:hover {
+    text-decoration: underline;
+}
+
+/* Actions */
+.ee-event-card__actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.ee-event-card__actions .dashicons {
+    vertical-align: middle;
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    margin-right: 2px;
+}
+
+/* Badges */
+.ee-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.ee-badge--featured  { background: #fef3c7; color: #92400e; }
+.ee-badge--past      { background: #f3f4f6; color: #6b7280; }
+.ee-badge--cancelled { background: #fee2e2; color: #991b1b; }
+
+.ee-badge--featured .dashicons {
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
+    color: #f59e0b;
+}
+
+/* Calendar: past/cancelled event rows */
+.eventeule-calendar-event.is-past    { opacity: 0.65; }
+.eventeule-calendar-event.is-cancelled { border-left: 3px solid #dc3545; padding-left: 10px; }
+
+
 .ee-app {
     display: flex;
     margin: -10px -20px -20px -20px;

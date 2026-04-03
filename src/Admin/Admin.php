@@ -3,15 +3,18 @@
 namespace EventEule\Admin;
 
 use EventEule\Domain\EventPostType;
+use EventEule\Registration\RegistrationRepository;
 use EventEule\Repository\EventRepository;
 
 class Admin
 {
     private EventRepository $eventRepository;
+    private RegistrationRepository $registrationRepository;
 
-    public function __construct(EventRepository $eventRepository)
+    public function __construct(EventRepository $eventRepository, RegistrationRepository $registrationRepository)
     {
-        $this->eventRepository = $eventRepository;
+        $this->eventRepository        = $eventRepository;
+        $this->registrationRepository = $registrationRepository;
     }
 
     public function register(): void
@@ -68,6 +71,32 @@ class Admin
 
         // Only query GitHub when the Einstellungen section is active
         $latestGithubVersion = ($activeSection === 'einstellungen') ? $this->get_latest_github_version() : null;
+
+        // Veranstaltungen section: view + filter data
+        $evtView     = isset($_GET['evtview']) ? sanitize_text_field($_GET['evtview']) : 'all';
+        $evtCategory = isset($_GET['evtcat'])  ? sanitize_text_field($_GET['evtcat'])  : '';
+
+        $allCategories = get_terms([
+            'taxonomy'   => 'eventeule_category',
+            'hide_empty' => false,
+            'orderby'    => 'name',
+        ]);
+        if (is_wp_error($allCategories)) {
+            $allCategories = [];
+        }
+
+        $evtQueryArgs = ['limit' => -1, 'show_past' => true];
+        if ($evtCategory !== '') {
+            $evtQueryArgs['category'] = $evtCategory;
+        }
+        if ($evtView === 'upcoming') {
+            $evtQueryArgs['show_past'] = false;
+        }
+
+        $allEventsForSection = $this->get_all_events_for_section($evtQueryArgs, $evtView);
+
+        // Pass registration repository to template
+        $registrationRepository = $this->registrationRepository;
 
         $template = EVENTEULE_PATH . 'templates/admin/dashboard.php';
 
@@ -173,6 +202,115 @@ class Admin
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('eventeule_admin'),
         ]);
+    }
+
+    /**
+     * Renders a single calendar-view event row and returns the HTML string.
+     * Called from the template via $this->render_event_row($evd).
+     *
+     * @param array<string, mixed> $evd  Result of EventRepository::get_event_data()
+     */
+    public function render_event_row(array $evd): string
+    {
+        $isCancelled = get_post_meta((int) $evd['id'], '_eventeule_cancelled', true) === '1';
+        $isPast      = !empty($evd['start_date']) && strtotime($evd['start_date']) < strtotime(current_time('Y-m-d'));
+
+        ob_start();
+        ?>
+        <div class="eventeule-calendar-event<?php echo $isPast ? ' is-past' : ''; ?><?php echo $isCancelled ? ' is-cancelled' : ''; ?>">
+            <div class="eventeule-calendar-date">
+                <div class="eventeule-calendar-day"><?php echo esc_html(date_i18n('d', strtotime($evd['start_date']))); ?></div>
+                <div class="eventeule-calendar-weekday"><?php echo esc_html(date_i18n('D', strtotime($evd['start_date']))); ?></div>
+            </div>
+            <div class="eventeule-calendar-info">
+                <h4>
+                    <?php echo esc_html($evd['title']); ?>
+                    <?php if ($evd['featured']): ?>
+                        <span class="dashicons dashicons-star-filled" style="color:#f0b849;"></span>
+                    <?php endif; ?>
+                    <?php if ($isCancelled): ?>
+                        <span class="ee-badge ee-badge--cancelled" style="margin-left:6px;"><?php esc_html_e('Abgesagt', 'eventeule'); ?></span>
+                    <?php elseif ($isPast): ?>
+                        <span class="ee-badge ee-badge--past" style="margin-left:6px;"><?php esc_html_e('Vergangen', 'eventeule'); ?></span>
+                    <?php endif; ?>
+                </h4>
+                <div class="eventeule-calendar-meta">
+                    <?php if (!empty($evd['start_time'])): ?>
+                        <span><span class="dashicons dashicons-clock"></span><?php echo esc_html($evd['start_time']); ?></span>
+                    <?php endif; ?>
+                    <?php if (!empty($evd['location'])): ?>
+                        <span><span class="dashicons dashicons-location"></span><?php echo esc_html($evd['location']); ?></span>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <div class="eventeule-calendar-actions">
+                <a href="<?php echo esc_url(admin_url('post.php?post=' . (int) $evd['id'] . '&action=edit')); ?>"
+                   class="button button-small">
+                    <?php esc_html_e('Bearbeiten', 'eventeule'); ?>
+                </a>
+            </div>
+        </div>
+        <?php
+        return (string) ob_get_clean();
+    }
+
+    /**
+     * Returns events for the Veranstaltungen section.
+     * For 'calendar' view it returns an array grouped by month.
+     * For all other views it returns a flat WP_Post[].
+     *
+     * @param array<string, mixed> $args
+     * @param string               $view
+     * @return WP_Post[]|array<string, array>
+     */
+    private function get_all_events_for_section(array $args, string $view): array
+    {
+        $queryArgs = [
+            'post_type'   => EventPostType::POST_TYPE,
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'meta_key'    => '_eventeule_start_date',
+            'orderby'     => 'meta_value',
+            'order'       => ($view === 'all') ? 'DESC' : 'ASC',
+        ];
+
+        if (!($args['show_past'] ?? true)) {
+            $queryArgs['meta_query'] = [[
+                'key'     => '_eventeule_start_date',
+                'value'   => current_time('Y-m-d'),
+                'compare' => '>=',
+                'type'    => 'DATE',
+            ]];
+        }
+
+        if (!empty($args['category'])) {
+            $queryArgs['tax_query'] = [[
+                'taxonomy' => 'eventeule_category',
+                'field'    => 'slug',
+                'terms'    => (string) $args['category'],
+            ]];
+        }
+
+        $query = new \WP_Query($queryArgs);
+        $posts = $query->posts;
+
+        if ($view === 'calendar') {
+            $grouped = [];
+            foreach ($posts as $post) {
+                $startDate = get_post_meta($post->ID, '_eventeule_start_date', true);
+                if (empty($startDate)) {
+                    continue;
+                }
+                $month = date('Y-m', strtotime($startDate));
+                if (!isset($grouped[$month])) {
+                    $grouped[$month] = [];
+                }
+                $grouped[$month][] = $this->eventRepository->get_event_data($post);
+            }
+            return $grouped;
+        }
+
+        return $posts;
     }
 
     /**
