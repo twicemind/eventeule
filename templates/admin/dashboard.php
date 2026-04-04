@@ -725,7 +725,7 @@ if (!defined('ABSPATH')) {
             <?php endif; ?>
 
             <!-- ── Hauptkarte: Filter + Tabelle ── -->
-            <div class="eventeule-card" style="padding:0; overflow-x:auto;">
+            <div class="eventeule-card" style="padding:0;">
 
                 <!-- Header / Toolbar inside card -->
                 <div class="ee-reg-toolbar">
@@ -776,12 +776,9 @@ if (!defined('ABSPATH')) {
                                         <th><?php esc_html_e('Veranstaltung', 'eventeule'); ?></th>
                                     <?php endif; ?>
                                     <th><?php esc_html_e('Name', 'eventeule'); ?></th>
-                                    <th><?php esc_html_e('E-Mail', 'eventeule'); ?></th>
-                                    <th><?php esc_html_e('Telefon', 'eventeule'); ?></th>
                                     <th class="ee-col-center"><?php esc_html_e('Pers.', 'eventeule'); ?></th>
-                                    <th><?php esc_html_e('Nachricht', 'eventeule'); ?></th>
                                     <th><?php esc_html_e('Angemeldet am', 'eventeule'); ?></th>
-                                    <th><?php esc_html_e('Aktionen', 'eventeule'); ?></th>
+                                    <th style="width:60px;"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -798,34 +795,30 @@ if (!defined('ABSPATH')) {
                                                 </a>
                                             </td>
                                         <?php endif; ?>
-                                        <td><strong><?php echo esc_html(trim($reg['firstname'] . ' ' . $reg['lastname'])); ?></strong></td>
                                         <td>
+                                            <strong><?php echo esc_html(trim($reg['firstname'] . ' ' . $reg['lastname'])); ?></strong>
                                             <?php if (!empty($reg['email'])): ?>
-                                                <a href="mailto:<?php echo esc_attr($reg['email']); ?>"><?php echo esc_html($reg['email']); ?></a>
-                                            <?php else: ?>—<?php endif; ?>
+                                                <br><small class="ee-text-muted"><?php echo esc_html($reg['email']); ?></small>
+                                            <?php endif; ?>
                                         </td>
-                                        <td class="ee-nowrap"><?php echo !empty($reg['phone']) ? esc_html($reg['phone']) : '—'; ?></td>
                                         <td class="ee-col-center"><?php echo esc_html($reg['participants']); ?></td>
-                                        <td class="ee-col-msg" title="<?php echo esc_attr($reg['message']); ?>">
-                                            <?php echo !empty($reg['message']) ? esc_html($reg['message']) : '—'; ?>
-                                        </td>
                                         <td class="ee-nowrap ee-col-date">
                                             <?php echo esc_html(wp_date(
-                                                get_option('date_format') . ', ' . get_option('time_format'),
+                                                get_option('date_format'),
                                                 strtotime($reg['registered_at'])
                                             )); ?>
                                         </td>
-                                        <td class="ee-nowrap">
+                                        <td>
                                             <div class="ee-reg-actions">
                                                 <?php if (!empty($reg['email'])): ?>
-                                                    <button type="button" class="button button-small ee-reply-btn"
+                                                    <button type="button" class="ee-icon-btn ee-reply-btn"
+                                                            title="<?php esc_attr_e('Antworten', 'eventeule'); ?>"
                                                             data-id="<?php echo esc_attr($reg['id']); ?>"
                                                             data-email="<?php echo esc_attr($reg['email']); ?>"
                                                             data-name="<?php echo esc_attr(trim($reg['firstname'] . ' ' . $reg['lastname'])); ?>"
                                                             data-event-id="<?php echo esc_attr($reg['event_id']); ?>"
                                                             data-event-title="<?php echo esc_attr(get_the_title((int) $reg['event_id'])); ?>">
                                                         <span class="dashicons dashicons-email"></span>
-                                                        <?php esc_html_e('Antworten', 'eventeule'); ?>
                                                     </button>
                                                 <?php endif; ?>
                                                 <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>"
@@ -835,8 +828,9 @@ if (!defined('ABSPATH')) {
                                                     <input type="hidden" name="registration_id" value="<?php echo esc_attr($reg['id']); ?>">
                                                     <input type="hidden" name="event_id"        value="<?php echo esc_attr($regEventId); ?>">
                                                     <?php wp_nonce_field('eventeule_delete_registration', 'eventeule_nonce'); ?>
-                                                    <button type="submit" class="button button-small button-link-delete">
-                                                        <?php esc_html_e('Löschen', 'eventeule'); ?>
+                                                    <button type="submit" class="ee-icon-btn ee-icon-btn--danger"
+                                                            title="<?php esc_attr_e('Anmeldung löschen', 'eventeule'); ?>">
+                                                        <span class="dashicons dashicons-trash"></span>
                                                     </button>
                                                 </form>
                                             </div>
@@ -1047,7 +1041,7 @@ if (!defined('ABSPATH')) {
                             </div>
                         </div>
                     <?php else: ?>
-                        <div class="eventeule-card" style="padding:0; overflow-x:auto;">
+                        <div class="eventeule-card" style="padding:0;">
                             <div style="padding:20px 24px 0;">
                                 <h2 style="margin-bottom:16px;">
                                     <?php esc_html_e('Alle Kategorien', 'eventeule'); ?>
@@ -1095,17 +1089,18 @@ if (!defined('ABSPATH')) {
                                                     <div class="ee-row-actions">
                                                         <a href="<?php echo esc_url(admin_url(
                                                             'edit-tags.php?action=edit&taxonomy=eventeule_category&post_type=eventeule_event&tag_ID=' . $cat->term_id
-                                                        )); ?>" class="button button-small">
+                                                        )); ?>" class="ee-icon-btn"
+                                                           title="<?php esc_attr_e('Bearbeiten', 'eventeule'); ?>">
                                                             <span class="dashicons dashicons-edit"></span>
-                                                            <?php esc_html_e('Bearbeiten', 'eventeule'); ?>
                                                         </a>
                                                         <a href="<?php echo esc_url(wp_nonce_url(
                                                             admin_url('edit-tags.php?action=delete&taxonomy=eventeule_category&post_type=eventeule_event&tag_ID=' . $cat->term_id),
                                                             'delete-tag_' . $cat->term_id
                                                         )); ?>"
-                                                           class="button button-small button-link-delete"
+                                                           class="ee-icon-btn ee-icon-btn--danger"
+                                                           title="<?php printf(esc_attr__('Kategorie „%s" löschen', 'eventeule'), esc_js($cat->name)); ?>"
                                                            onclick="return confirm('<?php printf(esc_attr__('Kategorie „%s" wirklich löschen?', 'eventeule'), esc_js($cat->name)); ?>');">
-                                                            <?php esc_html_e('Löschen', 'eventeule'); ?>
+                                                            <span class="dashicons dashicons-trash"></span>
                                                         </a>
                                                     </div>
                                                 </td>

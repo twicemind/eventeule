@@ -1114,6 +1114,47 @@ body.toplevel_page_eventeule.elementor-has-popup {
     gap: 4px;
 }
 
+/* ─── Icon-only action buttons ─── */
+.ee-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: 1px solid var(--ee-border);
+    background: #fff;
+    color: var(--ee-text-light);
+    cursor: pointer;
+    padding: 0;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    vertical-align: middle;
+}
+
+.ee-icon-btn:hover {
+    background: var(--ee-bg);
+    color: var(--ee-primary);
+    border-color: var(--ee-primary);
+}
+
+.ee-icon-btn .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.ee-icon-btn--danger {
+    color: #dc3545;
+    border-color: #f5c6cb;
+}
+
+.ee-icon-btn--danger:hover {
+    background: #fff5f5;
+    color: #991b1b;
+    border-color: #dc3545;
+}
+
 /* ─── Anmeldungen: toolbar inside card ─── */
 .ee-reg-toolbar {
     display: flex;
