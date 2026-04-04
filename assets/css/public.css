@@ -132,8 +132,8 @@
 /* ─── Meta row ─── */
 .ee-card__meta {
     display: flex;
-    flex-wrap: wrap;
-    gap: .55rem 1.1rem;
+    flex-direction: column;
+    gap: .4rem;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -143,8 +143,15 @@
 
 .ee-card__meta li {
     display: flex;
-    align-items: center;
-    gap: .3rem;
+    align-items: flex-start;
+    gap: .35rem;
+    min-width: 0;
+}
+
+.ee-card__meta li > span,
+.ee-card__meta li > :not(svg) {
+    flex: 1;
+    min-width: 0;
 }
 
 .ee-card__meta-sub {
