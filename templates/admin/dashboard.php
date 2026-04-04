@@ -27,35 +27,29 @@ if (!defined('ABSPATH')) {
         </div>
 
         <nav class="ee-sidebar-nav">
-            <?php
-            $eventsGroup = ['veranstaltungen', 'anmeldungen', 'kategorien'];
-            $eventsOpen  = in_array($activeSection, $eventsGroup, true);
-            ?>
+            <?php $eventsGroup = ['veranstaltungen', 'anmeldungen', 'kategorien']; ?>
             <a href="<?php echo esc_url(admin_url('admin.php?page=eventeule&nav=dashboard')); ?>"
                class="ee-nav-item<?php echo $activeSection === 'dashboard' ? ' is-active' : ''; ?>">
                 <span class="dashicons dashicons-dashboard"></span>
                 <span><?php esc_html_e('Dashboard', 'eventeule'); ?></span>
             </a>
 
-            <!-- Veranstaltungen group -->
+            <!-- Veranstaltungen group – always expanded -->
             <a href="<?php echo esc_url(admin_url('admin.php?page=eventeule&nav=veranstaltungen')); ?>"
                class="ee-nav-item<?php echo $activeSection === 'veranstaltungen' ? ' is-active' : ''; ?>">
                 <span class="dashicons dashicons-calendar-alt"></span>
                 <span><?php esc_html_e('Veranstaltungen', 'eventeule'); ?></span>
-                <span class="ee-nav-arrow dashicons dashicons-arrow-<?php echo $eventsOpen ? 'down' : 'right'; ?>-alt2"></span>
             </a>
-            <?php if ($eventsOpen): ?>
-                <a href="<?php echo esc_url(admin_url('admin.php?page=eventeule&nav=anmeldungen')); ?>"
-                   class="ee-nav-sub<?php echo $activeSection === 'anmeldungen' ? ' is-active' : ''; ?>">
-                    <span class="dashicons dashicons-groups"></span>
-                    <span><?php esc_html_e('Anmeldungen', 'eventeule'); ?></span>
-                </a>
-                <a href="<?php echo esc_url(admin_url('admin.php?page=eventeule&nav=kategorien')); ?>"
-                   class="ee-nav-sub<?php echo $activeSection === 'kategorien' ? ' is-active' : ''; ?>">
-                    <span class="dashicons dashicons-category"></span>
-                    <span><?php esc_html_e('Kategorien', 'eventeule'); ?></span>
-                </a>
-            <?php endif; ?>
+            <a href="<?php echo esc_url(admin_url('admin.php?page=eventeule&nav=anmeldungen')); ?>"
+               class="ee-nav-sub<?php echo $activeSection === 'anmeldungen' ? ' is-active' : ''; ?>">
+                <span class="dashicons dashicons-groups"></span>
+                <span><?php esc_html_e('Anmeldungen', 'eventeule'); ?></span>
+            </a>
+            <a href="<?php echo esc_url(admin_url('admin.php?page=eventeule&nav=kategorien')); ?>"
+               class="ee-nav-sub<?php echo $activeSection === 'kategorien' ? ' is-active' : ''; ?>">
+                <span class="dashicons dashicons-category"></span>
+                <span><?php esc_html_e('Kategorien', 'eventeule'); ?></span>
+            </a>
 
             <a href="<?php echo esc_url(admin_url('admin.php?page=eventeule&nav=einstellungen')); ?>"
                class="ee-nav-item<?php echo $activeSection === 'einstellungen' ? ' is-active' : ''; ?>">
@@ -664,13 +658,295 @@ if (!defined('ABSPATH')) {
             </div>
 
             <?php if (!empty($regNotice)): ?>
-                <div class="notice notice-<?php echo $regNoticeType === 'error' ? 'error' : 'success'; ?> is-dismissible" style="margin:0 0 20px;">
+                <div class="notice notice-<?php echo $regNoticeType === 'error' ? 'error' : 'success'; ?> is-dismissible" style="margin:0 0 24px;">
                     <p><?php echo esc_html($regNotice); ?></p>
                 </div>
             <?php endif; ?>
 
-            <!-- Filter + Export bar -->
-            <div class="ee-toolbar">
+            <!-- ── Absage-Status ── -->
+            <?php if ($regEventId > 0 && !$regIsCancelled): ?>
+                <div class="ee-cancel-box">
+                    <div class="ee-cancel-box__head">
+                        <span class="dashicons dashicons-dismiss"></span>
+                        <strong><?php esc_html_e('Veranstaltung absagen', 'eventeule'); ?></strong>
+                    </div>
+                    <p class="ee-cancel-box__desc">
+                        <?php esc_html_e('Die Veranstaltung wird als abgesagt markiert. Optional werden alle Angemeldeten per E-Mail informiert.', 'eventeule'); ?>
+                    </p>
+                    <button type="button" class="button" id="ee-cancel-toggle">
+                        <span class="dashicons dashicons-dismiss"></span>
+                        <?php esc_html_e('Veranstaltung absagen…', 'eventeule'); ?>
+                    </button>
+                    <div id="ee-cancel-form" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid rgba(230,81,0,.25);">
+                        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>"
+                              onsubmit="return confirm('<?php esc_attr_e('Veranstaltung wirklich absagen?', 'eventeule'); ?>');">
+                            <input type="hidden" name="action"   value="eventeule_cancel_event">
+                            <input type="hidden" name="event_id" value="<?php echo esc_attr($regEventId); ?>">
+                            <?php wp_nonce_field('eventeule_cancel_event', 'eventeule_nonce'); ?>
+                            <div class="eventeule-cat-field">
+                                <label><?php esc_html_e('Absagetext (optional)', 'eventeule'); ?></label>
+                                <textarea name="cancellation_text" rows="3" class="large-text"
+                                          placeholder="<?php esc_attr_e('Begründung oder weitere Informationen…', 'eventeule'); ?>"></textarea>
+                            </div>
+                            <?php if ($regTotal > 0): ?>
+                                <p>
+                                    <label>
+                                        <input type="checkbox" name="send_cancellation_emails" value="1" checked>
+                                        <?php printf(
+                                            esc_html(_n(
+                                                'Absage-E-Mail an %d angemeldete Person senden',
+                                                'Absage-E-Mail an %d angemeldete Personen senden',
+                                                $regTotal, 'eventeule'
+                                            )),
+                                            $regTotal
+                                        ); ?>
+                                    </label>
+                                </p>
+                            <?php endif; ?>
+                            <div style="display:flex; gap:10px; margin-top:12px;">
+                                <button type="submit" class="button" style="background:#e65100; color:#fff; border-color:#e65100;">
+                                    <span class="dashicons dashicons-dismiss"></span>
+                                    <?php esc_html_e('Jetzt absagen', 'eventeule'); ?>
+                                </button>
+                                <button type="button" class="button button-link" id="ee-cancel-close">
+                                    <?php esc_html_e('Abbrechen', 'eventeule'); ?>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            <?php elseif ($regIsCancelled): ?>
+                <div class="ee-cancelled-notice">
+                    <span class="dashicons dashicons-dismiss"></span>
+                    <strong><?php esc_html_e('Diese Veranstaltung wurde abgesagt.', 'eventeule'); ?></strong>
+                    <?php $ct = (string) get_post_meta($regEventId, '_eventeule_cancellation_text', true);
+                    if ($ct !== ''): ?><br><em style="font-size:13px;"><?php echo esc_html($ct); ?></em><?php endif; ?>
+                </div>
+            <?php endif; ?>
+
+            <!-- ── Hauptkarte: Filter + Tabelle ── -->
+            <div class="eventeule-card" style="padding:0; overflow:hidden;">
+
+                <!-- Header / Toolbar inside card -->
+                <div class="ee-reg-toolbar">
+                    <form method="get" action="<?php echo esc_url(admin_url('admin.php')); ?>" class="ee-reg-toolbar__filter">
+                        <input type="hidden" name="page" value="eventeule">
+                        <input type="hidden" name="nav"  value="anmeldungen">
+                        <select name="event_id">
+                            <option value="0"><?php esc_html_e('— Alle Veranstaltungen —', 'eventeule'); ?></option>
+                            <?php foreach ($registrationEvents as $eid): ?>
+                                <option value="<?php echo esc_attr($eid); ?>" <?php selected($regEventId, $eid); ?>>
+                                    <?php echo esc_html(get_the_title($eid)); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button type="submit" class="button"><?php esc_html_e('Filtern', 'eventeule'); ?></button>
+                    </form>
+
+                    <div class="ee-reg-toolbar__actions">
+                        <?php if ($regEventId > 0): ?>
+                            <a href="<?php echo esc_url(get_edit_post_link($regEventId)); ?>" class="button">
+                                <span class="dashicons dashicons-edit"></span>
+                                <?php esc_html_e('Event bearbeiten', 'eventeule'); ?>
+                            </a>
+                        <?php endif; ?>
+                        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline;">
+                            <input type="hidden" name="action"   value="eventeule_export_registrations">
+                            <input type="hidden" name="event_id" value="<?php echo esc_attr($regEventId); ?>">
+                            <?php wp_nonce_field('eventeule_export_registrations', 'eventeule_nonce'); ?>
+                            <button type="submit" class="button">
+                                <span class="dashicons dashicons-download"></span>
+                                <?php esc_html_e('CSV', 'eventeule'); ?>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <?php if (empty($registrations)): ?>
+                    <div class="eventeule-empty-state" style="padding:48px 24px;">
+                        <span class="dashicons dashicons-groups"></span>
+                        <p><?php esc_html_e('Noch keine Anmeldungen vorhanden.', 'eventeule'); ?></p>
+                    </div>
+                <?php else: ?>
+                    <div style="overflow-x:auto;">
+                        <table class="widefat ee-reg-table">
+                            <thead>
+                                <tr>
+                                    <?php if ($regEventId === 0): ?>
+                                        <th><?php esc_html_e('Veranstaltung', 'eventeule'); ?></th>
+                                    <?php endif; ?>
+                                    <th><?php esc_html_e('Name', 'eventeule'); ?></th>
+                                    <th><?php esc_html_e('E-Mail', 'eventeule'); ?></th>
+                                    <th><?php esc_html_e('Telefon', 'eventeule'); ?></th>
+                                    <th class="ee-col-center"><?php esc_html_e('Pers.', 'eventeule'); ?></th>
+                                    <th><?php esc_html_e('Nachricht', 'eventeule'); ?></th>
+                                    <th><?php esc_html_e('Angemeldet am', 'eventeule'); ?></th>
+                                    <th><?php esc_html_e('Aktionen', 'eventeule'); ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($registrations as $reg): ?>
+                                    <tr>
+                                        <?php if ($regEventId === 0): ?>
+                                            <td>
+                                                <a href="<?php echo esc_url(add_query_arg([
+                                                    'page'     => 'eventeule',
+                                                    'nav'      => 'anmeldungen',
+                                                    'event_id' => (int) $reg['event_id'],
+                                                ], admin_url('admin.php'))); ?>">
+                                                    <?php echo esc_html($reg['event_title'] ?? get_the_title((int) $reg['event_id'])); ?>
+                                                </a>
+                                            </td>
+                                        <?php endif; ?>
+                                        <td><strong><?php echo esc_html(trim($reg['firstname'] . ' ' . $reg['lastname'])); ?></strong></td>
+                                        <td>
+                                            <?php if (!empty($reg['email'])): ?>
+                                                <a href="mailto:<?php echo esc_attr($reg['email']); ?>"><?php echo esc_html($reg['email']); ?></a>
+                                            <?php else: ?>—<?php endif; ?>
+                                        </td>
+                                        <td class="ee-nowrap"><?php echo !empty($reg['phone']) ? esc_html($reg['phone']) : '—'; ?></td>
+                                        <td class="ee-col-center"><?php echo esc_html($reg['participants']); ?></td>
+                                        <td class="ee-col-msg" title="<?php echo esc_attr($reg['message']); ?>">
+                                            <?php echo !empty($reg['message']) ? esc_html($reg['message']) : '—'; ?>
+                                        </td>
+                                        <td class="ee-nowrap ee-col-date">
+                                            <?php echo esc_html(wp_date(
+                                                get_option('date_format') . ', ' . get_option('time_format'),
+                                                strtotime($reg['registered_at'])
+                                            )); ?>
+                                        </td>
+                                        <td class="ee-nowrap">
+                                            <div class="ee-reg-actions">
+                                                <?php if (!empty($reg['email'])): ?>
+                                                    <button type="button" class="button button-small ee-reply-btn"
+                                                            data-id="<?php echo esc_attr($reg['id']); ?>"
+                                                            data-email="<?php echo esc_attr($reg['email']); ?>"
+                                                            data-name="<?php echo esc_attr(trim($reg['firstname'] . ' ' . $reg['lastname'])); ?>"
+                                                            data-event-id="<?php echo esc_attr($reg['event_id']); ?>"
+                                                            data-event-title="<?php echo esc_attr(get_the_title((int) $reg['event_id'])); ?>">
+                                                        <span class="dashicons dashicons-email"></span>
+                                                        <?php esc_html_e('Antworten', 'eventeule'); ?>
+                                                    </button>
+                                                <?php endif; ?>
+                                                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>"
+                                                      style="display:inline;"
+                                                      onsubmit="return confirm('<?php esc_attr_e('Anmeldung wirklich löschen?', 'eventeule'); ?>');">
+                                                    <input type="hidden" name="action"          value="eventeule_delete_registration">
+                                                    <input type="hidden" name="registration_id" value="<?php echo esc_attr($reg['id']); ?>">
+                                                    <input type="hidden" name="event_id"        value="<?php echo esc_attr($regEventId); ?>">
+                                                    <?php wp_nonce_field('eventeule_delete_registration', 'eventeule_nonce'); ?>
+                                                    <button type="submit" class="button button-small button-link-delete">
+                                                        <?php esc_html_e('Löschen', 'eventeule'); ?>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <?php if ($regTotalPages > 1): ?>
+                        <div class="ee-pagination" style="padding:16px 24px; border-top:1px solid var(--ee-border);">
+                            <?php echo paginate_links([
+                                'base'      => add_query_arg('paged', '%#%'),
+                                'format'    => '',
+                                'prev_text' => '&laquo;',
+                                'next_text' => '&raquo;',
+                                'total'     => $regTotalPages,
+                                'current'   => $regPaged,
+                            ]); ?>
+                        </div>
+                    <?php endif; ?>
+                <?php endif; ?>
+
+            </div><!-- .eventeule-card -->
+
+            <!-- ── Reply modal ── -->
+            <div id="ee-reply-modal" class="ee-modal" style="display:none;">
+                <div class="ee-modal__inner">
+                    <h2 class="ee-modal__title">
+                        <span class="dashicons dashicons-email"></span>
+                        <?php esc_html_e('E-Mail senden an', 'eventeule'); ?>
+                        <span id="ee-reply-name" class="ee-modal__highlight"></span>
+                    </h2>
+                    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+                        <input type="hidden" name="action"          value="eventeule_reply_registration">
+                        <input type="hidden" name="registration_id" id="ee-reply-reg-id"   value="">
+                        <input type="hidden" name="event_id"        id="ee-reply-event-id" value="">
+                        <?php wp_nonce_field('eventeule_reply_registration', 'eventeule_nonce'); ?>
+                        <p class="ee-modal__to">
+                            <?php esc_html_e('An:', 'eventeule'); ?>
+                            <strong id="ee-reply-email-display"></strong>
+                        </p>
+                        <div class="eventeule-cat-field">
+                            <label for="ee-reply-subject">
+                                <?php esc_html_e('Betreff', 'eventeule'); ?>
+                                <span class="ee-required">*</span>
+                            </label>
+                            <input type="text" name="reply_subject" id="ee-reply-subject" class="large-text" required>
+                        </div>
+                        <div class="eventeule-cat-field">
+                            <label>
+                                <?php esc_html_e('Nachricht', 'eventeule'); ?>
+                                <span class="ee-required">*</span>
+                            </label>
+                            <textarea name="reply_body" rows="6" class="large-text" required></textarea>
+                        </div>
+                        <div class="ee-modal__footer">
+                            <button type="button" id="ee-reply-close" class="button">
+                                <?php esc_html_e('Abbrechen', 'eventeule'); ?>
+                            </button>
+                            <button type="submit" class="button button-primary">
+                                <span class="dashicons dashicons-email"></span>
+                                <?php esc_html_e('E-Mail senden', 'eventeule'); ?>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+            (function () {
+                var cancelToggle = document.getElementById('ee-cancel-toggle');
+                var cancelForm   = document.getElementById('ee-cancel-form');
+                var cancelClose  = document.getElementById('ee-cancel-close');
+                if (cancelToggle && cancelForm) {
+                    cancelToggle.addEventListener('click', function () {
+                        cancelForm.style.display = cancelForm.style.display === 'none' ? 'block' : 'none';
+                    });
+                }
+                if (cancelClose && cancelForm) {
+                    cancelClose.addEventListener('click', function () { cancelForm.style.display = 'none'; });
+                }
+                var modal     = document.getElementById('ee-reply-modal');
+                var nameEl    = document.getElementById('ee-reply-name');
+                var emailEl   = document.getElementById('ee-reply-email-display');
+                var regIdEl   = document.getElementById('ee-reply-reg-id');
+                var evtIdEl   = document.getElementById('ee-reply-event-id');
+                var subjectEl = document.getElementById('ee-reply-subject');
+                document.querySelectorAll('.ee-reply-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        nameEl.textContent  = btn.dataset.name || btn.dataset.email;
+                        emailEl.textContent = btn.dataset.email;
+                        regIdEl.value       = btn.dataset.id;
+                        evtIdEl.value       = btn.dataset.eventId;
+                        subjectEl.value     = '<?php echo esc_js(__('Bezüglich deiner Anmeldung', 'eventeule')); ?>'
+                                              + (btn.dataset.eventTitle ? ': ' + btn.dataset.eventTitle : '');
+                        modal.style.display = 'flex';
+                        subjectEl.focus();
+                    });
+                });
+                if (document.getElementById('ee-reply-close')) {
+                    document.getElementById('ee-reply-close').addEventListener('click', function () { modal.style.display = 'none'; });
+                }
+                if (modal) {
+                    modal.addEventListener('click', function (e) { if (e.target === modal) modal.style.display = 'none'; });
+                    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') modal.style.display = 'none'; });
+                }
+            }());
+            </script>
                 <form method="get" action="<?php echo esc_url(admin_url('admin.php')); ?>" class="ee-toolbar__filter">
                     <input type="hidden" name="page" value="eventeule">
                     <input type="hidden" name="nav"  value="anmeldungen">
@@ -954,45 +1230,59 @@ if (!defined('ABSPATH')) {
             </div>
 
             <?php
-            // Flash messages from WP core taxonomy actions
-            $catNotice = '';
+            // Flash messages forwarded from WP taxonomy redirect
+            $catNotice     = '';
+            $catNoticeType = 'success';
             if (isset($_GET['message'])) {
                 $msg = (int) $_GET['message'];
-                if ($msg === 1)      $catNotice = __('Kategorie hinzugefügt.', 'eventeule');
-                elseif ($msg === 2)  $catNotice = __('Kategorie wurde nicht hinzugefügt.', 'eventeule');
-                elseif ($msg === 3)  $catNotice = __('Kategorie gelöscht.', 'eventeule');
-                elseif ($msg === 6)  $catNotice = __('Kategorie aktualisiert.', 'eventeule');
+                if ($msg === 1)     { $catNotice = __('Kategorie hinzugefügt.', 'eventeule'); }
+                elseif ($msg === 2) { $catNotice = __('Kategorie wurde nicht hinzugefügt.', 'eventeule'); $catNoticeType = 'error'; }
+                elseif ($msg === 3) { $catNotice = __('Kategorie gelöscht.', 'eventeule'); }
+                elseif ($msg === 6) { $catNotice = __('Kategorie aktualisiert.', 'eventeule'); }
             }
+            $catList = get_terms([
+                'taxonomy'   => 'eventeule_category',
+                'hide_empty' => false,
+                'orderby'    => 'name',
+                'order'      => 'ASC',
+            ]);
+            if (is_wp_error($catList)) { $catList = []; }
             ?>
+
             <?php if ($catNotice !== ''): ?>
-                <div class="notice notice-success is-dismissible" style="margin:0 0 20px;">
+                <div class="notice notice-<?php echo $catNoticeType; ?> is-dismissible" style="margin:0 0 24px;">
                     <p><?php echo esc_html($catNotice); ?></p>
                 </div>
             <?php endif; ?>
 
             <div class="ee-cat-layout">
 
-                <!-- Add new category form -->
-                <div class="ee-card">
+                <!-- ── Add form ── -->
+                <div class="eventeule-card">
                     <h2><?php esc_html_e('Neue Kategorie', 'eventeule'); ?></h2>
-                    <form method="post" action="<?php echo esc_url(admin_url('edit-tags.php?taxonomy=eventeule_category&post_type=eventeule_event&action=add')); ?>">
-                        <?php wp_nonce_field('add-tag', '_wpnonce_add-tag'); ?>
-                        <input type="hidden" name="taxonomy" value="eventeule_category">
+                    <form method="post" action="<?php echo esc_url(admin_url('edit-tags.php')); ?>">
+                        <input type="hidden" name="action"    value="add-tag">
+                        <input type="hidden" name="taxonomy"  value="eventeule_category">
                         <input type="hidden" name="post_type" value="eventeule_event">
-                        <div class="ee-form-row">
+                        <?php wp_nonce_field('add-tag', '_wpnonce_add-tag'); ?>
+
+                        <div class="eventeule-cat-field">
                             <label for="ee-cat-name">
                                 <?php esc_html_e('Name', 'eventeule'); ?>
                                 <span class="ee-required">*</span>
                             </label>
-                            <input type="text" name="tag-name" id="ee-cat-name" class="regular-text" required>
+                            <input type="text" name="tag-name" id="ee-cat-name" class="large-text" required
+                                   placeholder="<?php esc_attr_e('z. B. Lesung, Kurs…', 'eventeule'); ?>">
                             <p class="description"><?php esc_html_e('Der Name erscheint in der Übersicht.', 'eventeule'); ?></p>
                         </div>
-                        <div class="ee-form-row">
+
+                        <div class="eventeule-cat-field">
                             <label for="ee-cat-slug"><?php esc_html_e('Slug', 'eventeule'); ?></label>
-                            <input type="text" name="slug" id="ee-cat-slug" class="regular-text">
-                            <p class="description"><?php esc_html_e('URL-Kennung, wird automatisch generiert wenn leer.', 'eventeule'); ?></p>
+                            <input type="text" name="slug" id="ee-cat-slug" class="large-text"
+                                   placeholder="<?php esc_attr_e('Wird automatisch generiert wenn leer', 'eventeule'); ?>">
                         </div>
-                        <div class="ee-form-row">
+
+                        <div class="eventeule-cat-field">
                             <label for="ee-cat-parent"><?php esc_html_e('Übergeordnet', 'eventeule'); ?></label>
                             <?php wp_dropdown_categories([
                                 'taxonomy'         => 'eventeule_category',
@@ -1002,15 +1292,17 @@ if (!defined('ABSPATH')) {
                                 'orderby'          => 'name',
                                 'hierarchical'     => 1,
                                 'show_option_none' => __('— Keine —', 'eventeule'),
-                                'class'            => 'ee-select',
+                                'class'            => 'large-text',
                             ]); ?>
                         </div>
-                        <div class="ee-form-row">
+
+                        <div class="eventeule-cat-field">
                             <label for="ee-cat-desc"><?php esc_html_e('Beschreibung', 'eventeule'); ?></label>
                             <textarea name="description" id="ee-cat-desc" rows="3" class="large-text"></textarea>
                         </div>
-                        <div class="ee-form-actions">
-                            <button type="submit" name="submit" class="button button-primary">
+
+                        <div class="eventeule-form-actions">
+                            <button type="submit" name="submit" class="button button-primary button-large">
                                 <span class="dashicons dashicons-plus-alt"></span>
                                 <?php esc_html_e('Neue Kategorie hinzufügen', 'eventeule'); ?>
                             </button>
@@ -1018,95 +1310,81 @@ if (!defined('ABSPATH')) {
                     </form>
                 </div>
 
-                <!-- Category list -->
+                <!-- ── Category list ── -->
                 <div class="ee-cat-list-col">
-                    <?php
-                    $catList = get_terms([
-                        'taxonomy'   => 'eventeule_category',
-                        'hide_empty' => false,
-                        'orderby'    => 'name',
-                        'order'      => 'ASC',
-                    ]);
-                    if (is_wp_error($catList)) {
-                        $catList = [];
-                    }
-                    ?>
                     <?php if (empty($catList)): ?>
-                        <div class="ee-empty-card">
-                            <span class="dashicons dashicons-category"></span>
-                            <p><?php esc_html_e('Noch keine Kategorien vorhanden.', 'eventeule'); ?></p>
+                        <div class="eventeule-card">
+                            <div class="eventeule-empty-state">
+                                <span class="dashicons dashicons-category"></span>
+                                <p><?php esc_html_e('Noch keine Kategorien vorhanden.', 'eventeule'); ?></p>
+                            </div>
                         </div>
                     <?php else: ?>
-                        <div class="ee-card">
+                        <div class="eventeule-card">
                             <h2>
                                 <?php esc_html_e('Alle Kategorien', 'eventeule'); ?>
-                                <span class="ee-count-badge"><?php echo count($catList); ?></span>
+                                <span class="ee-count-badge" style="margin-left:8px;"><?php echo count($catList); ?></span>
                             </h2>
-                            <table class="ee-table widefat">
-                                <thead>
-                                    <tr>
-                                        <th><?php esc_html_e('Name', 'eventeule'); ?></th>
-                                        <th><?php esc_html_e('Slug', 'eventeule'); ?></th>
-                                        <th class="ee-col-center"><?php esc_html_e('Veranstaltungen', 'eventeule'); ?></th>
-                                        <th><?php esc_html_e('Aktionen', 'eventeule'); ?></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($catList as $cat): ?>
+                            <div class="ee-table-wrap" style="border:none; border-radius:8px; box-shadow:none; margin:0;">
+                                <table class="ee-table widefat" style="border-radius:8px; overflow:hidden;">
+                                    <thead>
                                         <tr>
-                                            <td>
-                                                <strong>
-                                                    <a href="<?php echo esc_url(admin_url(
-                                                        'edit-tags.php?action=edit&taxonomy=eventeule_category&post_type=eventeule_event&tag_ID=' . $cat->term_id
-                                                    )); ?>">
-                                                        <?php echo esc_html($cat->name); ?>
-                                                    </a>
-                                                </strong>
-                                                <?php if ($cat->parent): ?>
-                                                    <br><small class="ee-text-muted">
-                                                        <?php $parent = get_term($cat->parent, 'eventeule_category');
-                                                        if ($parent && !is_wp_error($parent)) echo esc_html($parent->name); ?>
-                                                    </small>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td><code><?php echo esc_html($cat->slug); ?></code></td>
-                                            <td class="ee-col-center">
-                                                <?php if ($cat->count > 0): ?>
-                                                    <a href="<?php echo esc_url(add_query_arg([
-                                                        'page'      => 'eventeule',
-                                                        'nav'       => 'veranstaltungen',
-                                                        'evtview'   => 'category',
-                                                        'evtcat'    => $cat->slug,
-                                                    ], admin_url('admin.php'))); ?>"
-                                                       class="ee-count-link">
-                                                        <?php echo (int) $cat->count; ?>
-                                                    </a>
-                                                <?php else: ?>
-                                                    <span class="ee-text-muted">0</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <div class="ee-row-actions">
-                                                    <a href="<?php echo esc_url(admin_url(
-                                                        'edit-tags.php?action=edit&taxonomy=eventeule_category&post_type=eventeule_event&tag_ID=' . $cat->term_id
-                                                    )); ?>" class="button button-small">
-                                                        <span class="dashicons dashicons-edit"></span>
-                                                        <?php esc_html_e('Bearbeiten', 'eventeule'); ?>
-                                                    </a>
-                                                    <a href="<?php echo esc_url(wp_nonce_url(
-                                                        admin_url('edit-tags.php?action=delete&taxonomy=eventeule_category&post_type=eventeule_event&tag_ID=' . $cat->term_id),
-                                                        'delete-tag_' . $cat->term_id
-                                                    )); ?>"
-                                                       class="button button-small button-link-delete"
-                                                       onclick="return confirm('<?php printf(esc_attr__('Kategorie „%s" wirklich löschen?', 'eventeule'), esc_js($cat->name)); ?>');">
-                                                        <?php esc_html_e('Löschen', 'eventeule'); ?>
-                                                    </a>
-                                                </div>
-                                            </td>
+                                            <th><?php esc_html_e('Name', 'eventeule'); ?></th>
+                                            <th><?php esc_html_e('Slug', 'eventeule'); ?></th>
+                                            <th class="ee-col-center"><?php esc_html_e('Events', 'eventeule'); ?></th>
+                                            <th><?php esc_html_e('Aktionen', 'eventeule'); ?></th>
                                         </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($catList as $cat): ?>
+                                            <tr>
+                                                <td>
+                                                    <strong><?php echo esc_html($cat->name); ?></strong>
+                                                    <?php if ($cat->parent): ?>
+                                                        <?php $par = get_term($cat->parent, 'eventeule_category');
+                                                        if ($par && !is_wp_error($par)): ?>
+                                                            <br><small class="ee-text-muted"><?php echo esc_html($par->name); ?></small>
+                                                        <?php endif; ?>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td><code style="font-size:12px;"><?php echo esc_html($cat->slug); ?></code></td>
+                                                <td class="ee-col-center">
+                                                    <?php if ($cat->count > 0): ?>
+                                                        <a href="<?php echo esc_url(add_query_arg([
+                                                            'page'    => 'eventeule',
+                                                            'nav'     => 'veranstaltungen',
+                                                            'evtview' => 'category',
+                                                            'evtcat'  => $cat->slug,
+                                                        ], admin_url('admin.php'))); ?>" class="ee-count-link">
+                                                            <?php echo (int) $cat->count; ?>
+                                                        </a>
+                                                    <?php else: ?>
+                                                        <span class="ee-text-muted">0</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td>
+                                                    <div class="ee-row-actions">
+                                                        <a href="<?php echo esc_url(admin_url(
+                                                            'edit-tags.php?action=edit&taxonomy=eventeule_category&post_type=eventeule_event&tag_ID=' . $cat->term_id
+                                                        )); ?>" class="button button-small">
+                                                            <span class="dashicons dashicons-edit"></span>
+                                                            <?php esc_html_e('Bearbeiten', 'eventeule'); ?>
+                                                        </a>
+                                                        <a href="<?php echo esc_url(wp_nonce_url(
+                                                            admin_url('edit-tags.php?action=delete&taxonomy=eventeule_category&post_type=eventeule_event&tag_ID=' . $cat->term_id),
+                                                            'delete-tag_' . $cat->term_id
+                                                        )); ?>"
+                                                           class="button button-small button-link-delete"
+                                                           onclick="return confirm('<?php printf(esc_attr__('Kategorie „%s" wirklich löschen?', 'eventeule'), esc_js($cat->name)); ?>');">
+                                                            <?php esc_html_e('Löschen', 'eventeule'); ?>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     <?php endif; ?>
                 </div><!-- .ee-cat-list-col -->

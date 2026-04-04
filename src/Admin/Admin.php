@@ -87,11 +87,16 @@ class Admin
         }
 
         // edit-tags.php?taxonomy=eventeule_category → nav=kategorien
+        // Preserve WP message codes (1=added, 3=deleted, 6=updated) so our flash notice works.
         if (isset($_GET['taxonomy']) && $_GET['taxonomy'] === 'eventeule_category'
             && isset($_SERVER['PHP_SELF'])
             && str_contains((string) $_SERVER['PHP_SELF'], 'edit-tags.php')
         ) {
-            wp_safe_redirect(add_query_arg(['page' => 'eventeule', 'nav' => 'kategorien'], admin_url('admin.php')));
+            $args = ['page' => 'eventeule', 'nav' => 'kategorien'];
+            if (!empty($_GET['message'])) {
+                $args['message'] = (int) $_GET['message'];
+            }
+            wp_safe_redirect(add_query_arg($args, admin_url('admin.php')));
             exit;
         }
     }
