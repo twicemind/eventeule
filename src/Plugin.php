@@ -9,8 +9,11 @@ use EventEule\Admin\EventRegistrationMetaBox;
 use EventEule\Admin\RegistrationsAdmin;
 use EventEule\Admin\UpdaterSettings;
 use EventEule\Api\Api;
+use EventEule\Admin\OpeningHoursMetaBoxes;
 use EventEule\Domain\EventCategoryTaxonomy;
 use EventEule\Domain\EventPostType;
+use EventEule\Domain\OpeningHoursGenerator;
+use EventEule\Domain\OpeningHoursPostType;
 use EventEule\Frontend\Frontend;
 use EventEule\Integration\ElementorIntegration;
 use EventEule\Registration\RegistrationController;
@@ -31,6 +34,7 @@ class Plugin
         $this->register_registration();
         $this->register_integrations();
         $this->register_api();
+        $this->register_opening_hours_cron();
     }
 
     private function register_i18n(): void
@@ -52,6 +56,9 @@ class Plugin
 
         $eventCategoryTaxonomy = new EventCategoryTaxonomy();
         $eventCategoryTaxonomy->register();
+
+        $openingHoursPostType = new OpeningHoursPostType();
+        $openingHoursPostType->register();
     }
 
     private function register_admin(): void
@@ -77,6 +84,9 @@ class Plugin
 
             $registrationsAdmin = new RegistrationsAdmin($registrationRepository);
             $registrationsAdmin->register();
+
+            $openingHoursMetaBoxes = new OpeningHoursMetaBoxes();
+            $openingHoursMetaBoxes->register();
         }
     }
 
@@ -105,6 +115,18 @@ class Plugin
     {
         $api = new Api();
         $api->register();
+    }
+
+    private function register_opening_hours_cron(): void
+    {
+        // Register daily cron event for generating opening-hour events
+        add_action('eventeule_generate_opening_events', function () {
+            (new OpeningHoursGenerator())->generate_all();
+        });
+
+        if (!wp_next_scheduled('eventeule_generate_opening_events')) {
+            wp_schedule_event(time(), 'daily', 'eventeule_generate_opening_events');
+        }
     }
 
     private function register_integrations(): void

@@ -56,6 +56,11 @@ if (!defined('ABSPATH')) {
                 <span class="dashicons dashicons-admin-settings"></span>
                 <span><?php esc_html_e('Einstellungen', 'eventeule'); ?></span>
             </a>
+            <a href="<?php echo esc_url(admin_url('admin.php?page=eventeule&nav=oeffnungszeiten')); ?>"
+               class="ee-nav-item<?php echo $activeSection === 'oeffnungszeiten' ? ' is-active' : ''; ?>">
+                <span class="dashicons dashicons-clock"></span>
+                <span><?php esc_html_e('Öffnungszeiten', 'eventeule'); ?></span>
+            </a>
             <a href="<?php echo esc_url(admin_url('admin.php?page=eventeule&nav=system')); ?>"
                class="ee-nav-item<?php echo $activeSection === 'system' ? ' is-active' : ''; ?>">
                 <span class="dashicons dashicons-admin-tools"></span>
@@ -636,6 +641,226 @@ if (!defined('ABSPATH')) {
                     <p><?php esc_html_e('Dieser Bereich wird in einer zukünftigen Version weiter ausgebaut.', 'eventeule'); ?></p>
                 </div>
             </div>
+
+        <!-- ─── SYSTEM ─── -->
+        <?php elseif ($activeSection === 'system'): ?>
+
+            <div class="ee-section-header">
+                <h1><?php esc_html_e('System', 'eventeule'); ?></h1>
+                <p><?php esc_html_e('System info and advanced settings', 'eventeule'); ?></p>
+            </div>
+
+            <div class="eventeule-card">
+                <div class="eventeule-empty-state">
+                    <span class="dashicons dashicons-admin-tools"></span>
+                    <p><?php esc_html_e('Dieser Bereich wird in einer zukünftigen Version weiter ausgebaut.', 'eventeule'); ?></p>
+                </div>
+            </div>
+
+        <!-- ─── ÖFFNUNGSZEITEN ─── -->
+        <?php elseif ($activeSection === 'oeffnungszeiten'): ?>
+
+            <div class="ee-section-header">
+                <h1><?php esc_html_e('Öffnungszeiten', 'eventeule'); ?></h1>
+                <p><?php esc_html_e('Wiederkehrende Veranstaltungen aus Öffnungszeiten generieren', 'eventeule'); ?></p>
+            </div>
+
+            <?php if (isset($_GET['cancelled']) && $_GET['cancelled'] === '1'): ?>
+                <div class="notice notice-success is-dismissible" style="margin:0 0 20px;">
+                    <p><?php esc_html_e('Termin wurde abgesagt.', 'eventeule'); ?></p>
+                </div>
+            <?php elseif (isset($_GET['restored']) && $_GET['restored'] === '1'): ?>
+                <div class="notice notice-success is-dismissible" style="margin:0 0 20px;">
+                    <p><?php esc_html_e('Termin wurde wiederhergestellt.', 'eventeule'); ?></p>
+                </div>
+            <?php endif; ?>
+
+            <!-- New schedule button -->
+            <div class="ee-action-bar" style="margin-bottom:24px;">
+                <a href="<?php echo esc_url(admin_url('post-new.php?post_type=eventeule_opening')); ?>"
+                   class="button button-primary">
+                    <span class="dashicons dashicons-plus-alt"></span>
+                    <?php esc_html_e('Neue Öffnungszeit hinzufügen', 'eventeule'); ?>
+                </a>
+            </div>
+
+            <?php if (empty($openingSchedules)): ?>
+                <div class="eventeule-card">
+                    <div class="eventeule-empty-state">
+                        <span class="dashicons dashicons-clock"></span>
+                        <p><?php esc_html_e('Noch keine Öffnungszeiten angelegt.', 'eventeule'); ?></p>
+                        <a href="<?php echo esc_url(admin_url('post-new.php?post_type=eventeule_opening')); ?>"
+                           class="button button-primary">
+                            <?php esc_html_e('Erste Öffnungszeit erstellen', 'eventeule'); ?>
+                        </a>
+                    </div>
+                </div>
+            <?php else: ?>
+
+                <?php foreach ($openingSchedules as $schedule):
+                    // Days label
+                    $ohDays    = get_post_meta($schedule->ID, '_oh_days_of_week', true);
+                    $dayNames  = [1 => 'Mo', 2 => 'Di', 3 => 'Mi', 4 => 'Do', 5 => 'Fr', 6 => 'Sa', 7 => 'So'];
+                    $dayLabels = [];
+                    if (is_array($ohDays)) {
+                        sort($ohDays);
+                        foreach ($ohDays as $d) {
+                            if (isset($dayNames[(int) $d])) {
+                                $dayLabels[] = $dayNames[(int) $d];
+                            }
+                        }
+                    }
+                    $startTime    = (string) get_post_meta($schedule->ID, '_oh_start_time', true);
+                    $endTime      = (string) get_post_meta($schedule->ID, '_oh_end_time', true);
+                    $dateFrom     = (string) get_post_meta($schedule->ID, '_oh_date_from', true);
+                    $dateUntil    = (string) get_post_meta($schedule->ID, '_oh_date_until', true);
+                    $excludedDates = (array) get_post_meta($schedule->ID, '_oh_excluded_dates', true);
+
+                    // Upcoming generated events (next 8 weeks)
+                    $genQuery = new WP_Query([
+                        'post_type'      => 'eventeule_event',
+                        'post_status'    => ['publish', 'draft'],
+                        'posts_per_page' => 20,
+                        'meta_query'     => [
+                            [
+                                'key'   => '_eventeule_opening_id',
+                                'value' => $schedule->ID,
+                            ],
+                            [
+                                'key'     => '_eventeule_start_date',
+                                'value'   => current_time('Y-m-d'),
+                                'compare' => '>=',
+                                'type'    => 'DATE',
+                            ],
+                        ],
+                        'meta_key' => '_eventeule_start_date',
+                        'orderby'  => 'meta_value',
+                        'order'    => 'ASC',
+                    ]);
+                    $genEvents = $genQuery->posts;
+                ?>
+                <div class="eventeule-card ee-oh-card" style="padding:0;">
+
+                    <!-- Card header -->
+                    <div class="ee-oh-header">
+                        <div class="ee-oh-header__info">
+                            <h2 style="margin:0; font-size:16px;">
+                                <?php echo esc_html($schedule->post_title); ?>
+                                <?php if ($schedule->post_status === 'draft'): ?>
+                                    <span class="ee-badge ee-badge--past" style="margin-left:6px;"><?php esc_html_e('Entwurf', 'eventeule'); ?></span>
+                                <?php endif; ?>
+                            </h2>
+                            <div class="ee-oh-meta">
+                                <?php if (!empty($dayLabels)): ?>
+                                    <span>
+                                        <span class="dashicons dashicons-calendar-alt"></span>
+                                        <?php echo esc_html(implode(', ', $dayLabels)); ?>
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($startTime !== ''): ?>
+                                    <span>
+                                        <span class="dashicons dashicons-clock"></span>
+                                        <?php echo esc_html($startTime); ?>
+                                        <?php if ($endTime !== ''): ?> – <?php echo esc_html($endTime); ?><?php endif; ?>
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($dateFrom !== '' || $dateUntil !== ''): ?>
+                                    <span>
+                                        <span class="dashicons dashicons-calendar"></span>
+                                        <?php if ($dateFrom !== ''): ?><?php echo esc_html(wp_date(get_option('date_format'), strtotime($dateFrom))); ?><?php endif; ?>
+                                        <?php if ($dateUntil !== ''): ?> – <?php echo esc_html(wp_date(get_option('date_format'), strtotime($dateUntil))); ?><?php endif; ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="ee-oh-header__actions">
+                            <a href="<?php echo esc_url(admin_url('post.php?post=' . $schedule->ID . '&action=edit')); ?>"
+                               class="ee-icon-btn" title="<?php esc_attr_e('Öffnungszeit bearbeiten', 'eventeule'); ?>">
+                                <span class="dashicons dashicons-edit"></span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Generated events list -->
+                    <?php if (empty($genEvents)): ?>
+                        <div style="padding:20px 24px; color:#999; font-size:13px;">
+                            <?php esc_html_e('Keine bevorstehenden generierten Termine.', 'eventeule'); ?>
+                        </div>
+                    <?php else: ?>
+                        <table class="ee-table" style="border-radius:0;">
+                            <thead>
+                                <tr>
+                                    <th><?php esc_html_e('Datum', 'eventeule'); ?></th>
+                                    <th><?php esc_html_e('Zeit', 'eventeule'); ?></th>
+                                    <th><?php esc_html_e('Status', 'eventeule'); ?></th>
+                                    <th style="width:80px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($genEvents as $genEvent):
+                                    $genDate    = (string) get_post_meta($genEvent->ID, '_eventeule_start_date', true);
+                                    $genStart   = (string) get_post_meta($genEvent->ID, '_eventeule_start_time', true);
+                                    $genEnd     = (string) get_post_meta($genEvent->ID, '_eventeule_end_time', true);
+                                    $isCancelled = get_post_meta($genEvent->ID, '_eventeule_cancelled', true) === '1';
+                                ?>
+                                    <tr class="<?php echo $isCancelled ? 'ee-oh-row--cancelled' : ''; ?>">
+                                        <td class="ee-nowrap">
+                                            <?php echo esc_html(wp_date(get_option('date_format') . ', l', strtotime($genDate))); ?>
+                                        </td>
+                                        <td class="ee-nowrap">
+                                            <?php echo $genStart !== '' ? esc_html($genStart) : '—'; ?>
+                                            <?php if ($genEnd !== ''): ?> – <?php echo esc_html($genEnd); ?><?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($isCancelled): ?>
+                                                <span class="ee-badge ee-badge--cancelled"><?php esc_html_e('Abgesagt', 'eventeule'); ?></span>
+                                            <?php else: ?>
+                                                <span class="ee-badge" style="background:#d1fae5; color:#065f46;"><?php esc_html_e('Aktiv', 'eventeule'); ?></span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <div class="ee-reg-actions">
+                                                <a href="<?php echo esc_url(admin_url('post.php?post=' . $genEvent->ID . '&action=edit')); ?>"
+                                                   class="ee-icon-btn"
+                                                   title="<?php esc_attr_e('Termin bearbeiten', 'eventeule'); ?>">
+                                                    <span class="dashicons dashicons-edit"></span>
+                                                </a>
+                                                <?php if ($isCancelled): ?>
+                                                    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline;">
+                                                        <input type="hidden" name="action"      value="eventeule_restore_opening_date">
+                                                        <input type="hidden" name="schedule_id" value="<?php echo esc_attr($schedule->ID); ?>">
+                                                        <input type="hidden" name="date"        value="<?php echo esc_attr($genDate); ?>">
+                                                        <?php wp_nonce_field('eventeule_restore_opening_date'); ?>
+                                                        <button type="submit" class="ee-icon-btn"
+                                                                title="<?php esc_attr_e('Absage rückgängig machen', 'eventeule'); ?>">
+                                                            <span class="dashicons dashicons-undo"></span>
+                                                        </button>
+                                                    </form>
+                                                <?php else: ?>
+                                                    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline;"
+                                                          onsubmit="return confirm('<?php printf(esc_attr__('Termin am %s absagen?', 'eventeule'), esc_js(wp_date(get_option('date_format'), strtotime($genDate)))); ?>');">
+                                                        <input type="hidden" name="action"      value="eventeule_cancel_opening_date">
+                                                        <input type="hidden" name="schedule_id" value="<?php echo esc_attr($schedule->ID); ?>">
+                                                        <input type="hidden" name="date"        value="<?php echo esc_attr($genDate); ?>">
+                                                        <?php wp_nonce_field('eventeule_cancel_opening_date'); ?>
+                                                        <button type="submit" class="ee-icon-btn ee-icon-btn--danger"
+                                                                title="<?php esc_attr_e('Diesen Termin absagen', 'eventeule'); ?>">
+                                                            <span class="dashicons dashicons-dismiss"></span>
+                                                        </button>
+                                                    </form>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+
+                </div><!-- .ee-oh-card -->
+                <?php endforeach; ?>
+
+            <?php endif; ?>
 
         <!-- ─── ANMELDUNGEN ─── -->
         <?php elseif ($activeSection === 'anmeldungen'): ?>

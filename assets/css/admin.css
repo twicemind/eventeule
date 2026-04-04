@@ -1155,6 +1155,65 @@ body.toplevel_page_eventeule.elementor-has-popup {
     border-color: #dc3545;
 }
 
+/* ─── Öffnungszeiten: schedule cards ─── */
+.ee-oh-card {
+    overflow: hidden;
+}
+
+.ee-oh-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--ee-border);
+    background: rgba(99, 102, 241, 0.03);
+}
+
+.ee-oh-header__info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.ee-oh-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 13px;
+    color: var(--ee-text-light);
+}
+
+.ee-oh-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ee-oh-meta .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+}
+
+.ee-oh-header__actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.ee-oh-row--cancelled td {
+    opacity: 0.55;
+    text-decoration: line-through;
+}
+
+.ee-oh-row--cancelled .ee-badge,
+.ee-oh-row--cancelled .ee-reg-actions {
+    text-decoration: none;
+    opacity: 1;
+}
+
 /* ─── Anmeldungen: toolbar inside card ─── */
 .ee-reg-toolbar {
     display: flex;

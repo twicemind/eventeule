@@ -3,6 +3,8 @@
 namespace EventEule\Admin;
 
 use EventEule\Domain\EventPostType;
+use EventEule\Domain\OpeningHoursGenerator;
+use EventEule\Domain\OpeningHoursPostType;
 use EventEule\Registration\RegistrationRepository;
 use EventEule\Repository\EventRepository;
 
@@ -26,6 +28,9 @@ class Admin
         add_action('admin_notices', [$this, 'hide_other_plugin_notices']);
         // Redirect legacy standalone pages into the in-app sections
         add_action('admin_init', [$this, 'redirect_legacy_pages']);
+        // AJAX: cancel / restore a single opening-hours occurrence
+        add_action('admin_post_eventeule_cancel_opening_date',   [$this, 'handle_cancel_opening_date']);
+        add_action('admin_post_eventeule_restore_opening_date',  [$this, 'handle_restore_opening_date']);
     }
 
     /**
@@ -200,6 +205,19 @@ class Admin
 
         // Pass registration repository to template
         $registrationRepository = $this->registrationRepository;
+
+        // ── Öffnungszeiten section ─────────────────────────────────────────
+        $openingSchedules = [];
+        if ($activeSection === 'oeffnungszeiten') {
+            $schQuery = new \WP_Query([
+                'post_type'      => OpeningHoursPostType::POST_TYPE,
+                'post_status'    => ['publish', 'draft'],
+                'posts_per_page' => -1,
+                'orderby'        => 'title',
+                'order'          => 'ASC',
+            ]);
+            $openingSchedules = $schQuery->posts;
+        }
 
         $template = EVENTEULE_PATH . 'templates/admin/dashboard.php';
 
@@ -535,6 +553,54 @@ class Admin
 
         set_transient($transient_key, $version, HOUR_IN_SECONDS);
         return $version;
+    }
+
+    public function handle_cancel_opening_date(): void
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('Forbidden', 403);
+        }
+
+        check_admin_referer('eventeule_cancel_opening_date');
+
+        $scheduleId = isset($_POST['schedule_id']) ? (int) $_POST['schedule_id'] : 0;
+        $date       = isset($_POST['date'])        ? sanitize_text_field(wp_unslash($_POST['date'])) : '';
+
+        if ($scheduleId > 0 && $date !== '') {
+            (new OpeningHoursGenerator())->exclude_date($scheduleId, $date);
+        }
+
+        wp_safe_redirect(add_query_arg([
+            'page'       => 'eventeule',
+            'nav'        => 'oeffnungszeiten',
+            'schedule'   => $scheduleId,
+            'cancelled'  => '1',
+        ], admin_url('admin.php')));
+        exit;
+    }
+
+    public function handle_restore_opening_date(): void
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('Forbidden', 403);
+        }
+
+        check_admin_referer('eventeule_restore_opening_date');
+
+        $scheduleId = isset($_POST['schedule_id']) ? (int) $_POST['schedule_id'] : 0;
+        $date       = isset($_POST['date'])        ? sanitize_text_field(wp_unslash($_POST['date'])) : '';
+
+        if ($scheduleId > 0 && $date !== '') {
+            (new OpeningHoursGenerator())->include_date($scheduleId, $date);
+        }
+
+        wp_safe_redirect(add_query_arg([
+            'page'      => 'eventeule',
+            'nav'       => 'oeffnungszeiten',
+            'schedule'  => $scheduleId,
+            'restored'  => '1',
+        ], admin_url('admin.php')));
+        exit;
     }
 
     public function save_settings(): void
