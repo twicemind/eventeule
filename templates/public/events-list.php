@@ -47,6 +47,136 @@ if (!function_exists('eventeule_format_event_time')) {
 }
 ?>
 
+<div class="ee-list">
+    <?php if (empty($events)) : ?>
+        <p class="ee-list__empty"><?php esc_html_e('Aktuell sind keine Veranstaltungen verfügbar.', 'eventeule'); ?></p>
+    <?php else : ?>
+        <?php foreach ($events as $event) :
+            $startDate  = (string) ($event['start_date'] ?? '');
+            $endDate    = (string) ($event['end_date'] ?? '');
+            $startTime  = (string) ($event['start_time'] ?? '');
+            $endTime    = (string) ($event['end_time'] ?? '');
+            $location   = (string) ($event['location'] ?? '');
+            $permalink  = (string) ($event['permalink'] ?? '');
+            $title      = (string) ($event['title'] ?? '');
+            $excerpt    = (string) ($event['excerpt'] ?? '');
+            $note       = (string) ($event['note'] ?? '');
+            $regUrl     = (string) ($event['registration_url'] ?? '');
+            $featured   = !empty($event['featured']);
+            $isCancelled = !empty($event['cancelled']);
+            $postId     = (int) ($event['id'] ?? 0);
+            $hasThumb   = $postId > 0 && has_post_thumbnail($postId);
+
+            // Date badge parts
+            $dayNum   = $startDate !== '' ? wp_date('d', strtotime($startDate))   : '';
+            $monthAbb = $startDate !== '' ? wp_date('M', strtotime($startDate))   : '';
+            $year     = $startDate !== '' ? wp_date('Y', strtotime($startDate))   : '';
+            $weekday  = $startDate !== '' ? wp_date('D', strtotime($startDate))   : '';
+
+            $cardClass = 'ee-card';
+            if ($featured)   { $cardClass .= ' ee-card--featured'; }
+            if ($isCancelled){ $cardClass .= ' ee-card--cancelled'; }
+        ?>
+            <article class="<?php echo esc_attr($cardClass); ?>">
+
+                <?php if ($hasThumb): ?>
+                    <a class="ee-card__thumb" href="<?php echo esc_url($permalink); ?>" tabindex="-1" aria-hidden="true">
+                        <?php echo get_the_post_thumbnail($postId, 'medium', ['class' => 'ee-card__img', 'alt' => '']); ?>
+                    </a>
+                <?php endif; ?>
+
+                <div class="ee-card__body">
+
+                    <!-- Date badge -->
+                    <?php if ($dayNum !== ''): ?>
+                        <div class="ee-card__date<?php echo $isCancelled ? ' ee-card__date--cancelled' : ''; ?>">
+                            <span class="ee-card__date-day"><?php echo esc_html($dayNum); ?></span>
+                            <span class="ee-card__date-month"><?php echo esc_html($monthAbb); ?></span>
+                            <span class="ee-card__date-year"><?php echo esc_html($year); ?></span>
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="ee-card__content">
+
+                        <!-- Categories + badges -->
+                        <div class="ee-card__top">
+                            <?php if (!empty($event['categories']) && is_array($event['categories'])): ?>
+                                <?php foreach ($event['categories'] as $term): ?>
+                                    <?php if ($term instanceof \WP_Term): ?>
+                                        <span class="ee-tag"><?php echo esc_html($term->name); ?></span>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                            <?php if ($featured && !$isCancelled): ?>
+                                <span class="ee-tag ee-tag--featured">&#9733; <?php esc_html_e('Highlight', 'eventeule'); ?></span>
+                            <?php endif; ?>
+                            <?php if ($isCancelled): ?>
+                                <span class="ee-tag ee-tag--cancelled"><?php esc_html_e('Abgesagt', 'eventeule'); ?></span>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Title -->
+                        <h3 class="ee-card__title">
+                            <a href="<?php echo esc_url($permalink); ?>"><?php echo esc_html($title); ?></a>
+                        </h3>
+
+                        <!-- Meta row -->
+                        <ul class="ee-card__meta">
+                            <?php if ($startDate !== ''): ?>
+                                <li>
+                                    <svg class="ee-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14M7 2v3M13 2v3"/></svg>
+                                    <?php echo esc_html(eventeule_format_event_date($startDate, $endDate)); ?>
+                                    <?php if ($weekday !== ''): ?>
+                                        <span class="ee-card__meta-sub"><?php echo esc_html($weekday); ?></span>
+                                    <?php endif; ?>
+                                </li>
+                            <?php endif; ?>
+                            <?php if ($startTime !== ''): ?>
+                                <li>
+                                    <svg class="ee-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l2.5 2.5"/></svg>
+                                    <?php echo esc_html(eventeule_format_event_time($startTime, $endTime)); ?>
+                                </li>
+                            <?php endif; ?>
+                            <?php if ($location !== ''): ?>
+                                <li>
+                                    <svg class="ee-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 2a6 6 0 0 1 6 6c0 4-6 10-6 10S4 12 4 8a6 6 0 0 1 6-6z"/><circle cx="10" cy="8" r="2"/></svg>
+                                    <?php echo esc_html($location); ?>
+                                </li>
+                            <?php endif; ?>
+                        </ul>
+
+                        <!-- Excerpt -->
+                        <?php if ($excerpt !== ''): ?>
+                            <p class="ee-card__excerpt"><?php echo wp_kses_post($excerpt); ?></p>
+                        <?php endif; ?>
+
+                        <!-- Note -->
+                        <?php if ($note !== ''): ?>
+                            <div class="ee-card__note"><?php echo esc_html($note); ?></div>
+                        <?php endif; ?>
+
+                        <!-- Actions -->
+                        <div class="ee-card__actions">
+                            <a class="ee-btn ee-btn--ghost" href="<?php echo esc_url($permalink); ?>">
+                                <?php esc_html_e('Weiterlesen', 'eventeule'); ?>
+                                <svg class="ee-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M12 6l4 4-4 4"/></svg>
+                            </a>
+                            <?php if ($regUrl !== '' && !$isCancelled): ?>
+                                <a class="ee-btn ee-btn--primary" href="<?php echo esc_url($regUrl); ?>" target="_blank" rel="noopener noreferrer">
+                                    <?php esc_html_e('Jetzt anmelden', 'eventeule'); ?>
+                                </a>
+                            <?php endif; ?>
+                        </div>
+
+                    </div><!-- .ee-card__content -->
+                </div><!-- .ee-card__body -->
+
+            </article>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</div>
+
+
 <div class="eventeule-events">
     <?php if (empty($events)) : ?>
         <p><?php esc_html_e('There are currently no events available.', 'eventeule'); ?></p>

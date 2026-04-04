@@ -90,6 +90,7 @@ class EventRepository
             'registration_url'  => (string) get_post_meta($post->ID, '_eventeule_registration_url', true),
             'note'              => (string) get_post_meta($post->ID, '_eventeule_note', true),
             'featured'          => get_post_meta($post->ID, '_eventeule_featured', true) === '1',
+            'cancelled'         => get_post_meta($post->ID, '_eventeule_cancelled', true) === '1',
             'categories'        => is_array($terms) ? $terms : [],
         ];
     }
