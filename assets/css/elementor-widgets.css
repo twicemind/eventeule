@@ -565,9 +565,8 @@
 /* Card Meta */
 .eventeule-event-card-meta {
     display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    align-items: center;
+    flex-direction: column;
+    gap: 6px;
     font-size: 14px;
     color: #6b7280;
 }

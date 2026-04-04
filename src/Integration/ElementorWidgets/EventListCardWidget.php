@@ -999,6 +999,7 @@ class EventListCardWidget extends Widget_Base
             // Get event meta
             $start_date = get_post_meta($event_id, '_eventeule_start_date', true);
             $start_time = get_post_meta($event_id, '_eventeule_start_time', true);
+            $end_time   = get_post_meta($event_id, '_eventeule_end_time', true);
             $location = get_post_meta($event_id, '_eventeule_location', true);
             $registration_url = get_post_meta($event_id, '_eventeule_registration_url', true);
 
@@ -1054,7 +1055,11 @@ class EventListCardWidget extends Widget_Base
 
             if ($settings['show_time'] === 'yes' && $start_time) {
                 $time_classes = 'eventeule-meta-time' . $this->get_responsive_classes('hide_time_on');
-                $meta_items[] = '<span class="' . esc_attr($time_classes) . '"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg> ' . esc_html($start_time) . '</span>';
+                $time_label = esc_html($start_time);
+                if ($end_time) {
+                    $time_label .= ' – ' . esc_html($end_time);
+                }
+                $meta_items[] = '<span class="' . esc_attr($time_classes) . '"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg> ' . $time_label . '</span>';
             }
 
             if ($settings['show_price'] === 'yes') {
@@ -1071,12 +1076,10 @@ class EventListCardWidget extends Widget_Base
                 echo '</div>';
             }
 
-            echo '</div>'; // .eventeule-event-card-content
-
-            // Button
+            // Button (inside content so it sits as last column-item)
             if ($settings['show_button'] === 'yes') {
                 $button_url = get_permalink();
-                
+
                 if ($settings['button_link_type'] === 'registration' && !empty($registration_url)) {
                     $button_url = $registration_url;
                 }
@@ -1088,6 +1091,8 @@ class EventListCardWidget extends Widget_Base
                 echo '</a>';
                 echo '</div>';
             }
+
+            echo '</div>'; // .eventeule-event-card-content
 
             echo '</div>'; // .eventeule-event-card
         }
