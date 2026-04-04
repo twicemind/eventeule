@@ -1047,12 +1047,14 @@ if (!defined('ABSPATH')) {
                             </div>
                         </div>
                     <?php else: ?>
-                        <div class="eventeule-card">
-                            <h2>
-                                <?php esc_html_e('Alle Kategorien', 'eventeule'); ?>
-                                <span class="ee-count-badge" style="margin-left:8px;"><?php echo count($catList); ?></span>
-                            </h2>
-                            <div class="ee-table-wrap" style="border:none; border-radius:8px; box-shadow:none; margin:0; overflow-x:auto;">
+                        <div class="eventeule-card" style="padding:0; overflow-x:auto;">
+                            <div style="padding:20px 24px 0;">
+                                <h2 style="margin-bottom:16px;">
+                                    <?php esc_html_e('Alle Kategorien', 'eventeule'); ?>
+                                    <span class="ee-count-badge" style="margin-left:8px;"><?php echo count($catList); ?></span>
+                                </h2>
+                            </div>
+                            <div class="ee-table-wrap" style="border:none; border-radius:0; box-shadow:none; margin:0;">
                                 <table class="ee-table widefat">
                                     <thead>
                                         <tr>

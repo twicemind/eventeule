@@ -1109,7 +1109,8 @@ body.toplevel_page_eventeule.elementor-has-popup {
 /* ─── Row action buttons inside table ─── */
 .ee-row-actions {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 4px;
 }
 
