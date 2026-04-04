@@ -1053,7 +1053,8 @@ body.toplevel_page_eventeule.elementor-has-popup {
     background: var(--ee-card-bg);
     border: 1px solid var(--ee-border);
     border-radius: 12px;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: visible;
     box-shadow: var(--ee-shadow);
     margin-bottom: 24px;
 }

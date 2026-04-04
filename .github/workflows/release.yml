@@ -52,10 +52,8 @@ jobs:
           cp -r templates eventeule/
           cp -r vendor eventeule/
           
-          # Create ZIP from eventeule/ folder
-          cd eventeule
-          zip -r ../dist/eventeule-${{ steps.get_version.outputs.VERSION }}.zip . -x "*.DS_Store"
-          cd ..
+          # Create ZIP with eventeule/ as the root folder inside the archive
+          zip -r dist/eventeule-${{ steps.get_version.outputs.VERSION }}.zip eventeule/ -x "*.DS_Store"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

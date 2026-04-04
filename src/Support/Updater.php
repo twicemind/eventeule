@@ -6,579 +6,249 @@ use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 class Updater
 {
+    private const SLUG = 'eventeule';
+    private const REPOSITORY_URL = 'https://github.com/twicemind/eventeule';
+    private const RELEASE_ASSET_REGEX = '/eventeule-.*\.zip/i';
+
     private $updateChecker = null;
 
     public function register(): void
     {
-        add_action('plugins_loaded', [$this, 'init_update_checker']);
+        $this->init_update_checker();
+
         add_action('admin_post_eventeule_check_updates', [$this, 'handle_manual_update_check']);
-        add_action('admin_post_eventeule_direct_update', [$this, 'handle_direct_update']);
+
+        /**
+         * Optionaler Fallback:
+         * Falls WordPress den von PUC ermittelten Update-Eintrag nicht stabil
+         * im update_plugins-Transient hält, injizieren wir ihn beim Schreiben.
+         */
+        add_filter('pre_set_site_transient_update_plugins', [$this, 'ensure_update_in_transient'], 20);
     }
 
-    public function init_update_checker(): void
+    private function init_update_checker(): void
     {
-        if (!class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory')) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('EventEule: Plugin Update Checker library not found. Run: composer install');
+        if ($this->updateChecker !== null) {
+            return;
+        }
+
+        if (!class_exists(PucFactory::class)) {
+            if ($this->is_debug()) {
+                error_log('EventEule Updater: Plugin Update Checker library not found.');
             }
             return;
         }
 
-        // GitHub Repository URL
-        $githubUrl = 'https://github.com/twicemind/eventeule';
-        
-        // Initialize Update Checker
         $this->updateChecker = PucFactory::buildUpdateChecker(
-            $githubUrl,
+            self::REPOSITORY_URL,
             EVENTEULE_FILE,
-            'eventeule'
+            self::SLUG
         );
 
-        // GitHub token from environment variable or local config (optional for public repos)
         $githubToken = $this->get_github_token();
-        
-        if (!empty($githubToken)) {
+        if ($githubToken !== '') {
             $this->updateChecker->setAuthentication($githubToken);
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('EventEule: Using GitHub token for API requests');
-            }
-        } else {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('EventEule: No GitHub token - using public API (60 req/hour limit)');
-            }
         }
 
-        // Use release assets instead of source code (regex picks the plugin ZIP)
-        $this->updateChecker->getVcsApi()->enableReleaseAssets('/eventeule-.*\.zip/i');
-        
-        // Inject into transient at WRITE time so even after WP refreshes it, EventEule is included
-        add_filter('pre_set_site_transient_update_plugins', [$this, 'ensure_update_in_transient'], 20, 1);
+        $this->updateChecker->getVcsApi()->enableReleaseAssets(self::RELEASE_ASSET_REGEX);
 
-        // Add debug logging if WP_DEBUG is enabled
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            add_action('puc_check_now-eventeule', [$this, 'log_update_check'], 10, 1);
-            add_filter('puc_request_info_result-eventeule', [$this, 'log_api_response'], 20, 2);
+        if ($this->is_debug()) {
+            add_action('puc_check_now-' . self::SLUG, [$this, 'log_update_check'], 10, 1);
+            add_filter('puc_request_info_result-' . self::SLUG, [$this, 'log_api_response'], 20, 2);
+
+            error_log('EventEule Updater: initialized');
+            error_log('EventEule Updater: plugin_basename=' . plugin_basename(EVENTEULE_FILE));
+            error_log('EventEule Updater: current_version=' . EVENTEULE_VERSION);
         }
     }
 
-    /**
-     * Inject EventEule update into the transient when WordPress writes it.
-     * PUC handles the READ side; this covers the WRITE side so the stored
-     * transient already contains our update (belt-and-suspenders).
-     */
-    public function ensure_update_in_transient($transient) {
-        if (!$this->updateChecker) {
-            return $transient;
-        }
-        $update = $this->updateChecker->getUpdate();
-        if ($update !== null) {
-            if (!is_object($transient)) {
-                $transient = new \stdClass();
-                $transient->response = [];
-            }
-            if (!isset($transient->response)) {
-                $transient->response = [];
-            }
-            $pluginFile = plugin_basename(EVENTEULE_FILE);
-            $transient->response[$pluginFile] = $update->toWpFormat();
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('EventEule: Injected v' . $update->version . ' into update transient (pre_set)');
-            }
-        }
-        return $transient;
-    }
-
-    /**
-     * Get GitHub token from various sources
-     */
-    private function get_github_token(): string
-    {
-        // 1. Check WordPress option (from admin settings)
-        $token = get_option('eventeule_github_token', '');
-        if (!empty($token)) {
-            return $token;
-        }
-
-        // 2. Check environment variable (e.g. when .env is loaded)
-        if (defined('GITHUB_ACCESS_TOKEN') && !empty(GITHUB_ACCESS_TOKEN)) {
-            return GITHUB_ACCESS_TOKEN;
-        }
-
-        // 3. Check $_ENV (when server-level environment variables are set)
-        if (isset($_ENV['GITHUB_ACCESS_TOKEN']) && !empty($_ENV['GITHUB_ACCESS_TOKEN'])) {
-            return $_ENV['GITHUB_ACCESS_TOKEN'];
-        }
-
-        // 4. Check local config file (not committed)
-        $configFile = EVENTEULE_PATH . 'config-local.php';
-        if (file_exists($configFile)) {
-            $config = include $configFile;
-            if (isset($config['github_token']) && !empty($config['github_token'])) {
-                return $config['github_token'];
-            }
-        }
-
-        // 5. No token found - only works for public repositories
-        return '';
-    }
-
-    /**
-     * Handle manual update check from admin
-     */
     public function handle_manual_update_check(): void
     {
-        if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have permission to perform this action.', 'eventeule'));
+        if (!current_user_can('update_plugins')) {
+            wp_die(esc_html__('You do not have permission to perform this action.', 'eventeule'));
         }
 
         check_admin_referer('eventeule_check_updates', 'eventeule_nonce');
 
-        // Ensure update checker is initialized
+        $this->init_update_checker();
+
         if ($this->updateChecker === null) {
-            $this->init_update_checker();
+            wp_safe_redirect(add_query_arg(
+                [
+                    'update-check' => 'error',
+                    'error-detail' => rawurlencode('Updater could not be initialized'),
+                    'nav' => 'einstellungen',
+                ],
+                admin_url('admin.php?page=eventeule')
+            ));
+            exit;
         }
 
-        // Force update check by clearing the cache
-        if ($this->updateChecker) {
-            try {
-                // Clear Plugin Update Checker cache
-                $this->updateChecker->resetUpdateState();
-                
-                // Force immediate check
-                $this->updateChecker->checkForUpdates();
-                
-                // Get update info
-                $update = $this->updateChecker->getUpdate();
-                
-                // Manually ensure the WordPress transient is set
-                if ($update !== null && version_compare($update->version, EVENTEULE_VERSION, '>')) {
-                    // Get current transient
-                    $current = get_site_transient('update_plugins');
-                    if (!is_object($current)) {
-                        $current = new \stdClass();
-                    }
-                    if (!isset($current->response)) {
-                        $current->response = [];
-                    }
-                    
-                    // Add our plugin update to the transient
-                    $plugin_file = 'eventeule/EventEule.php';
-                    $current->response[$plugin_file] = (object)[
-                        'slug' => 'eventeule',
-                        'plugin' => $plugin_file,
-                        'new_version' => $update->version,
-                        'url' => 'https://github.com/twicemind/eventeule',
-                        'package' => $update->download_url,
-                        'tested' => '',
-                        'requires_php' => '',
-                        'compatibility' => new \stdClass(),
-                    ];
-                    
-                    // Refresh last_checked so _maybe_update_plugins() won't immediately
-                    // overwrite this transient with a fresh WP.org API call
-                    $current->last_checked = time();
+        try {
+            $this->updateChecker->resetUpdateState();
 
-                    // Save the transient
-                    set_site_transient('update_plugins', $current);
-                    
-                    // Clear the cached GitHub version so the Direct Update section
-                    // immediately reflects the newly discovered version.
-                    delete_transient('eventeule_latest_github_version');
+            delete_site_transient('update_plugins');
+            wp_clean_plugins_cache(true);
 
-                    if (defined('WP_DEBUG') && WP_DEBUG) {
-                        error_log('EventEule: Manually set update transient for version ' . $update->version);
-                    }
-                    
-                    wp_redirect(add_query_arg(
-                        ['update-check' => 'available', 'version' => $update->version, 'nav' => 'einstellungen'],
-                        admin_url('admin.php?page=eventeule')
-                    ));
-                    exit;
-                } else {
-                    wp_redirect(add_query_arg(
-                        ['update-check' => 'none', 'nav' => 'einstellungen'],
-                        admin_url('admin.php?page=eventeule')
-                    ));
-                    exit;
-                }
-            } catch (\Throwable $e) {
-                // Log error for debugging
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('EventEule Update Check Error: ' . $e->getMessage());
-                }
-                
-                wp_redirect(add_query_arg(
-                    ['update-check' => 'error', 'error-detail' => urlencode($e->getMessage()), 'nav' => 'einstellungen'],
-                    admin_url('admin.php?page=eventeule')
-                ));
-                exit;
+            $this->updateChecker->checkForUpdates();
+
+            delete_site_transient('update_plugins');
+            wp_clean_plugins_cache(true);
+
+            $update = $this->updateChecker->getUpdate();
+
+            $status = (
+                $update !== null
+                && isset($update->version)
+                && version_compare($update->version, EVENTEULE_VERSION, '>')
+            ) ? 'available' : 'none';
+
+            wp_safe_redirect(add_query_arg(
+                [
+                    'update-check' => $status,
+                    'version'      => $update->version ?? '',
+                    'nav'          => 'einstellungen',
+                ],
+                admin_url('admin.php?page=eventeule')
+            ));
+            exit;
+        } catch (\Throwable $e) {
+            if ($this->is_debug()) {
+                error_log('EventEule Updater Error: ' . $e->getMessage());
             }
-        } else {
-            // Check if it's because the library is missing
-            $error_detail = class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory') 
-                ? 'Update checker not initialized' 
-                : 'Plugin Update Checker library not found. Please run: composer install';
-                
-            wp_redirect(add_query_arg(
-                ['update-check' => 'error', 'error-detail' => urlencode($error_detail), 'nav' => 'einstellungen'],
+
+            wp_safe_redirect(add_query_arg(
+                [
+                    'update-check' => 'error',
+                    'error-detail' => rawurlencode($e->getMessage()),
+                    'nav'          => 'einstellungen',
+                ],
                 admin_url('admin.php?page=eventeule')
             ));
             exit;
         }
     }
 
-    /**
-     * Log update checks for debugging
-     */
+    public function ensure_update_in_transient($transient)
+    {
+        if ($this->updateChecker === null) {
+            return $transient;
+        }
+
+        $update = $this->updateChecker->getUpdate();
+        if ($update === null) {
+            return $transient;
+        }
+
+        if (!is_object($transient)) {
+            $transient = new \stdClass();
+        }
+
+        if (!isset($transient->response) || !is_array($transient->response)) {
+            $transient->response = [];
+        }
+
+        if (!isset($transient->no_update) || !is_array($transient->no_update)) {
+            $transient->no_update = [];
+        }
+
+        $pluginFile = plugin_basename(EVENTEULE_FILE);
+        $transient->response[$pluginFile] = $update->toWpFormat();
+        unset($transient->no_update[$pluginFile]);
+
+        if ($this->is_debug()) {
+            error_log(
+                sprintf(
+                    'EventEule Updater: injected update into transient: plugin=%s current=%s latest=%s',
+                    $pluginFile,
+                    EVENTEULE_VERSION,
+                    $update->version
+                )
+            );
+        }
+
+        return $transient;
+    }
+
+    private function get_github_token(): string
+    {
+        $token = get_option('eventeule_github_token', '');
+        if (is_string($token) && $token !== '') {
+            return trim($token);
+        }
+
+        if (defined('GITHUB_ACCESS_TOKEN') && GITHUB_ACCESS_TOKEN !== '') {
+            return trim((string) GITHUB_ACCESS_TOKEN);
+        }
+
+        if (!empty($_ENV['GITHUB_ACCESS_TOKEN'])) {
+            return trim((string) $_ENV['GITHUB_ACCESS_TOKEN']);
+        }
+
+        $configFile = EVENTEULE_PATH . 'config-local.php';
+        if (file_exists($configFile)) {
+            $config = include $configFile;
+            if (is_array($config) && !empty($config['github_token'])) {
+                return trim((string) $config['github_token']);
+            }
+        }
+
+        return '';
+    }
+
     public function log_update_check($checkerInstance): void
     {
-        error_log('EventEule: Checking for updates from GitHub...');
-        
-        if ($this->updateChecker) {
+        if (!$this->is_debug()) {
+            return;
+        }
+
+        error_log('EventEule Updater: checking for updates');
+        error_log('EventEule Updater: plugin_basename=' . plugin_basename(EVENTEULE_FILE));
+        error_log('EventEule Updater: current_version=' . EVENTEULE_VERSION);
+
+        if ($this->updateChecker !== null) {
             $update = $this->updateChecker->getUpdate();
-            if ($update) {
-                error_log('EventEule: Update available - Version ' . $update->version);
+
+            if ($update !== null) {
+                error_log('EventEule Updater: update_available=' . $update->version);
+                error_log('EventEule Updater: download_url=' . ($update->download_url ?? 'n/a'));
             } else {
-                error_log('EventEule: No updates available. Current version: ' . EVENTEULE_VERSION);
+                error_log('EventEule Updater: no update available');
             }
         }
     }
 
-    /**
-     * Handle direct update from GitHub.
-     *
-     * Downloads the latest release ZIP, extracts it with PHP's ZipArchive,
-     * and replaces the plugin directory using an atomic rename sequence.
-     * Uses only native PHP file operations – no WP_Filesystem dependency,
-     * no Plugin_Upgrader deactivation, no "Cannot redeclare class" issues.
-     */
-    public function handle_direct_update(): void
+    public function log_api_response($pluginInfo, $result)
     {
-        if (!current_user_can('update_plugins')) {
-            wp_die(esc_html__('You do not have permission to perform this action.', 'eventeule'));
+        if (!$this->is_debug()) {
+            return $pluginInfo;
         }
 
-        check_admin_referer('eventeule_direct_update', 'eventeule_nonce');
-
-        // Allow enough time for download + extraction + file copy on slow hosting
-        @set_time_limit(300);
-
-        // ── 1. Fetch latest release info from GitHub ────────────────────────
-        $api_url = 'https://api.github.com/repos/twicemind/eventeule/releases/latest';
-        $request_args = [
-            'headers' => [
-                'User-Agent' => 'EventEule-WordPress-Plugin/' . EVENTEULE_VERSION,
-                'Accept'     => 'application/vnd.github.v3+json',
-            ],
-            'timeout'   => 20,
-            'sslverify' => true,
-        ];
-
-        $token = $this->get_github_token();
-        if (!empty($token)) {
-            $request_args['headers']['Authorization'] = 'Bearer ' . $token;
+        if ($result === null) {
+            error_log('EventEule Updater: API returned null');
+            return $pluginInfo;
         }
 
-        $response = wp_remote_get($api_url, $request_args);
-
-        if (is_wp_error($response)) {
-            $this->redirect_update_error($response->get_error_message());
+        if (is_wp_error($result)) {
+            error_log('EventEule Updater: API error: ' . $result->get_error_message());
+            return $pluginInfo;
         }
 
-        $code = wp_remote_retrieve_response_code($response);
-        if (200 !== $code) {
-            $this->redirect_update_error('GitHub API returned HTTP ' . $code);
-        }
-
-        $body           = json_decode(wp_remote_retrieve_body($response), true);
-        $latest_version = ltrim($body['tag_name'] ?? '', 'v');
-
-        if (empty($latest_version)) {
-            $this->redirect_update_error('No release version found on GitHub');
-        }
-
-        // ── 2. Locate the plugin ZIP asset ──────────────────────────────────
-        $download_url = null;
-        if (!empty($body['assets'])) {
-            foreach ($body['assets'] as $asset) {
-                if (preg_match('/eventeule-.*\.zip$/i', $asset['name'] ?? '')) {
-                    $download_url = $asset['browser_download_url'];
-                    break;
-                }
+        if (is_object($result)) {
+            if (isset($result->version)) {
+                error_log('EventEule Updater: API version=' . $result->version);
             }
-        }
-        if (empty($download_url)) {
-            $download_url = $body['zipball_url'] ?? null;
-        }
-        if (empty($download_url)) {
-            $this->redirect_update_error('No download URL found for release v' . $latest_version);
-        }
 
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('EventEule: Direct update – downloading v' . $latest_version . ' from ' . $download_url);
-        }
-
-        // ── 3. Download ZIP ──────────────────────────────────────────────────
-        // Use wp_remote_get() with stream so we can pass the Authorization header.
-        // download_url() doesn't support custom headers and would silently download
-        // an HTML error page if the asset requires authentication.
-        require_once ABSPATH . 'wp-admin/includes/file.php';
-
-        $zip_file   = wp_tempnam('eventeule-update');
-        $dl_headers = [
-            'User-Agent' => 'EventEule-WordPress-Plugin/' . EVENTEULE_VERSION,
-            'Accept'     => 'application/octet-stream',
-        ];
-        if (!empty($token)) {
-            $dl_headers['Authorization'] = 'Bearer ' . $token;
-        }
-
-        $dl_response = wp_remote_get($download_url, [
-            'headers'     => $dl_headers,
-            'timeout'     => 120,
-            'stream'      => true,
-            'filename'    => $zip_file,
-            'redirection' => 5,
-        ]);
-
-        if (is_wp_error($dl_response)) {
-            @unlink($zip_file);
-            $this->redirect_update_error('Download failed: ' . $dl_response->get_error_message());
-        }
-
-        $dl_code = (int) wp_remote_retrieve_response_code($dl_response);
-        if ($dl_code !== 200) {
-            @unlink($zip_file);
-            $this->redirect_update_error(
-                sprintf('Download failed: HTTP %d for URL: %s', $dl_code, $download_url)
-            );
-        }
-
-        // ── 4. Extract with ZipArchive ───────────────────────────────────────
-        $tmp_dir = WP_CONTENT_DIR . '/upgrade/eventeule-tmp-' . time();
-        if (!wp_mkdir_p($tmp_dir)) {
-            @unlink($zip_file);
-            $this->redirect_update_error('Could not create temporary directory');
-        }
-
-        if (!class_exists('ZipArchive')) {
-            @unlink($zip_file);
-            $this->rmdir_recursive($tmp_dir);
-            $this->redirect_update_error('PHP ZipArchive extension is not available on this server');
-        }
-
-        $zip = new \ZipArchive();
-        $opened = $zip->open($zip_file);
-        if ($opened !== true) {
-            @unlink($zip_file);
-            $this->rmdir_recursive($tmp_dir);
-            $this->redirect_update_error('Could not open ZIP file (ZipArchive error ' . $opened . ')');
-        }
-
-        $zip->extractTo($tmp_dir);
-        $zip->close();
-        @unlink($zip_file);
-
-        // ── 5. Locate EventEule.php inside extracted content ─────────────────
-        // The GitHub Actions ZIP has files at root level (no subdirectory).
-        // Fallback: handle ZIPs that do have a subdirectory.
-        $source_dir = '';
-
-        if (file_exists($tmp_dir . '/EventEule.php')) {
-            // Files are at the root of the extracted directory
-            $source_dir = $tmp_dir;
-        } else {
-            // Files are inside a subdirectory
-            foreach ((array) glob($tmp_dir . '/*', GLOB_ONLYDIR) as $dir) {
-                if (file_exists($dir . '/EventEule.php')) {
-                    $source_dir = $dir;
-                    break;
-                }
+            if (isset($result->download_url)) {
+                error_log('EventEule Updater: API download_url=' . $result->download_url);
             }
         }
 
-        if (empty($source_dir)) {
-            $this->rmdir_recursive($tmp_dir);
-            $this->redirect_update_error('EventEule.php not found in the downloaded release ZIP');
-        }
-
-        // ── 6. Atomic directory replacement ─────────────────────────────────
-        // Use plugin_dir_path(EVENTEULE_FILE) so the path is correct regardless
-        // of the actual directory name (e.g. "eventeule", "eventeule-3.1.0", etc.)
-        // rtrim strips the trailing slash that plugin_dir_path() always adds.
-        $plugin_dir  = rtrim(plugin_dir_path(EVENTEULE_FILE), '/\\');
-        $plugins_dir = dirname($plugin_dir);
-        $staging_dir = $plugins_dir . '/eventeule-staging-' . time();
-        $backup_dir  = $plugins_dir . '/eventeule-backup-'  . time();
-
-        // Copy extracted files into staging directory
-        if (!$this->copy_dir_native($source_dir, $staging_dir)) {
-            $this->rmdir_recursive($tmp_dir);
-            $this->rmdir_recursive($staging_dir);
-            $this->redirect_update_error('Failed to copy new plugin files to staging directory');
-        }
-
-        // Cleanup temp extraction dir
-        $this->rmdir_recursive($tmp_dir);
-
-        // Swap: backup old → install new
-        if (!rename($plugin_dir, $backup_dir)) {
-            $this->rmdir_recursive($staging_dir);
-            $this->redirect_update_error('Failed to back up existing plugin directory');
-        }
-
-        if (!rename($staging_dir, $plugin_dir)) {
-            // Rollback: restore old plugin
-            rename($backup_dir, $plugin_dir);
-            $this->rmdir_recursive($staging_dir);
-            $this->redirect_update_error('Failed to move new plugin into place (rollback performed)');
-        }
-
-        // Remove backup
-        $this->rmdir_recursive($backup_dir);
-
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('EventEule: Direct update to v' . $latest_version . ' completed – directory replaced, plugin remains active');
-        }
-
-        // ── 7. Clear OPcache so new PHP files are executed on next request ────
-        // Without this, PHP serves the OLD bytecode from cache and the version
-        // number appears unchanged even though the files on disk are new.
-        if (function_exists('opcache_reset')) {
-            opcache_reset();
-        } elseif (function_exists('opcache_invalidate')) {
-            $rit = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($plugin_dir, \RecursiveDirectoryIterator::SKIP_DOTS)
-            );
-            foreach ($rit as $rfile) {
-                if ($rfile->isFile() && $rfile->getExtension() === 'php') {
-                    opcache_invalidate($rfile->getPathname(), true);
-                }
-            }
-        }
-        wp_cache_flush();
-
-        // ── 8. Clear update transients ───────────────────────────────────────
-        delete_transient('eventeule_latest_github_version');
-
-        $current = get_site_transient('update_plugins');
-        if (is_object($current) && isset($current->response)) {
-            $plugin_file = plugin_basename(EVENTEULE_FILE);
-            unset($current->response[$plugin_file]);
-            set_site_transient('update_plugins', $current);
-        }
-
-        wp_safe_redirect(add_query_arg(
-            ['direct-update' => 'success', 'version' => $latest_version, 'nav' => 'einstellungen'],
-            admin_url('admin.php?page=eventeule')
-        ));
-        exit;
-    }
-
-    /**
-     * Recursively copy a directory using native PHP (no WP_Filesystem).
-     */
-    private function copy_dir_native(string $from, string $to): bool
-    {
-        if (!is_dir($to) && !mkdir($to, 0755, true)) {
-            return false;
-        }
-
-        $items = scandir($from);
-        if ($items === false) {
-            return false;
-        }
-
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-            $src = $from . DIRECTORY_SEPARATOR . $item;
-            $dst = $to . DIRECTORY_SEPARATOR . $item;
-
-            if (is_dir($src)) {
-                if (!$this->copy_dir_native($src, $dst)) {
-                    return false;
-                }
-            } else {
-                if (!copy($src, $dst)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Recursively delete a directory using native PHP.
-     */
-    private function rmdir_recursive(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $items = scandir($dir);
-        if ($items === false) {
-            return;
-        }
-
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-            $path = $dir . DIRECTORY_SEPARATOR . $item;
-            if (is_dir($path)) {
-                $this->rmdir_recursive($path);
-            } else {
-                @unlink($path);
-            }
-        }
-
-        @rmdir($dir);
-    }
-
-    /**
-     * Redirect back to the Updates tab with an error message.
-     */
-    private function redirect_update_error(string $detail): never
-    {
-        wp_safe_redirect(add_query_arg(
-            ['direct-update' => 'error', 'error-detail' => rawurlencode($detail), 'nav' => 'einstellungen'],
-            admin_url('admin.php?page=eventeule')
-        ));
-        exit;
-    }
-
-    /**
-     * Log API response for debugging
-     */
-    public function log_api_response($pluginInfo, $result): mixed
-    {
-        if (!isset($result)) {
-            error_log('EventEule: API returned no result');
-        } elseif (is_wp_error($result)) {
-            error_log('EventEule: API Error: ' . $result->get_error_message());
-        } elseif (is_object($result)) {
-            if (isset($result->message)) {
-                error_log('EventEule: GitHub API Message: ' . $result->message);
-            }
-            if (isset($result->tag_name)) {
-                error_log('EventEule: Latest GitHub Release: ' . $result->tag_name);
-            }
-            if (isset($result->assets) && is_array($result->assets)) {
-                error_log('EventEule: Found ' . count($result->assets) . ' release assets');
-                foreach ($result->assets as $asset) {
-                    if (isset($asset->name)) {
-                        error_log('EventEule: Asset: ' . $asset->name);
-                    }
-                }
-            } else {
-                error_log('EventEule: No assets found in release');
-            }
-        }
-        
         return $pluginInfo;
+    }
+
+    private function is_debug(): bool
+    {
+        return defined('WP_DEBUG') && WP_DEBUG;
     }
 }
