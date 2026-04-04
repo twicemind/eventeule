@@ -403,11 +403,13 @@ class Updater
         }
 
         // ── 6. Atomic directory replacement ─────────────────────────────────
-        // Strategy: copy into a staging dir, then rename-swap with existing dir.
-        // rename() on the same filesystem is atomic and avoids partial states.
-        $plugin_dir  = WP_PLUGIN_DIR . '/eventeule';
-        $staging_dir = WP_PLUGIN_DIR . '/eventeule-staging-' . time();
-        $backup_dir  = WP_PLUGIN_DIR . '/eventeule-backup-' . time();
+        // Use plugin_dir_path(EVENTEULE_FILE) so the path is correct regardless
+        // of the actual directory name (e.g. "eventeule", "eventeule-3.1.0", etc.)
+        // rtrim strips the trailing slash that plugin_dir_path() always adds.
+        $plugin_dir  = rtrim(plugin_dir_path(EVENTEULE_FILE), '/\\');
+        $plugins_dir = dirname($plugin_dir);
+        $staging_dir = $plugins_dir . '/eventeule-staging-' . time();
+        $backup_dir  = $plugins_dir . '/eventeule-backup-'  . time();
 
         // Copy extracted files into staging directory
         if (!$this->copy_dir_native($source_dir, $staging_dir)) {
