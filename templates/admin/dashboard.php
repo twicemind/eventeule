@@ -768,7 +768,7 @@ if (!defined('ABSPATH')) {
                         <p><?php esc_html_e('Noch keine Anmeldungen vorhanden.', 'eventeule'); ?></p>
                     </div>
                 <?php else: ?>
-                    <div style="overflow-x:auto;">
+                    <div>
                         <table class="widefat ee-reg-table">
                             <thead>
                                 <tr>
