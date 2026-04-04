@@ -69,72 +69,13 @@
     display: block;
 }
 
-/* ─── Body (date badge + content side-by-side) ─── */
+/* ─── Body (full-width flex column) ─── */
 .ee-card__body {
-    display: flex;
-    align-items: flex-start;
-    gap: 0;
-}
-
-/* ─── Date badge (left column) ─── */
-.ee-card__date {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 72px;
-    min-height: 88px;
-    background: linear-gradient(160deg, var(--ee-primary) 0%, #4f46e5 100%);
-    color: #fff;
-    padding: .75rem .5rem;
-    text-align: center;
-}
-
-.ee-card--featured .ee-card__date {
-    background: linear-gradient(160deg, var(--ee-accent) 0%, #d97706 100%);
-}
-
-.ee-card--cancelled .ee-card__date {
-    background: linear-gradient(160deg, var(--ee-danger) 0%, #991b1b 100%);
-}
-
-.ee-card__date-day {
-    display: block;
-    font-size: 1.9rem;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.ee-card__date-month {
-    display: block;
-    font-size: .75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    margin-top: 2px;
-    opacity: .9;
-}
-
-.ee-card__date-year {
-    display: block;
-    font-size: .65rem;
-    opacity: .7;
-    margin-top: 2px;
-}
-
-.ee-card__date--cancelled {
-    background: linear-gradient(160deg, var(--ee-danger) 0%, #991b1b 100%);
-}
-
-/* ─── Content area ─── */
-.ee-card__content {
-    flex: 1;
-    min-width: 0;
-    padding: 1rem 1.25rem 1.1rem;
     display: flex;
     flex-direction: column;
     gap: .55rem;
+    padding: 1.1rem 1.25rem 1.25rem;
+    flex: 1;
 }
 
 /* ─── Top (tags + badges) ─── */
@@ -241,12 +182,13 @@
     border-radius: 0 6px 6px 0;
 }
 
-/* ─── Action buttons ─── */
+/* ─── Action buttons (pinned to bottom) ─── */
 .ee-card__actions {
     display: flex;
     flex-wrap: wrap;
     gap: .6rem;
-    margin-top: .25rem;
+    margin-top: auto;
+    padding-top: .5rem;
 }
 
 .ee-btn {
