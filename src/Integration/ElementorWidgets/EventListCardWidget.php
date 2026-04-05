@@ -1203,9 +1203,73 @@ class EventListCardWidget extends Widget_Base
                 'selectors' => [
                     '{{WRAPPER}} .eventeule-event-card-footer' => 'display: flex; justify-content: {{VALUE}};',
                     '{{WRAPPER}} .eventeule-event-card-button' => '{{VALUE == "stretch" ? "width: 100%; text-align: center;" : ""}}',
+                    '{{WRAPPER}} .eventeule-event-card-link'   => '{{VALUE == "stretch" ? "width: 100%; text-align: center;" : ""}}',
                 ],
             ]
         );
+
+        // ── Link-Stil (nur wenn Button-Stil = Einfacher Link) ──────────────
+        $this->add_control(
+            'link_style_heading',
+            [
+                'label'     => __('Link-Stil', 'eventeule'),
+                'type'      => Controls_Manager::HEADING,
+                'separator' => 'before',
+                'condition' => ['button_style' => 'link'],
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'      => 'link_typography',
+                'selector'  => '{{WRAPPER}} .eventeule-event-card-link',
+                'condition' => ['button_style' => 'link'],
+            ]
+        );
+
+        $this->start_controls_tabs(
+            'link_tabs',
+            ['condition' => ['button_style' => 'link']]
+        );
+
+        $this->start_controls_tab(
+            'link_normal_tab',
+            ['label' => __('Normal', 'eventeule')]
+        );
+
+        $this->add_control(
+            'link_color',
+            [
+                'label'     => __('Farbe', 'eventeule'),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-event-card-link' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_tab();
+
+        $this->start_controls_tab(
+            'link_hover_tab',
+            ['label' => __('Hover', 'eventeule')]
+        );
+
+        $this->add_control(
+            'link_hover_color',
+            [
+                'label'     => __('Farbe', 'eventeule'),
+                'type'      => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-event-card-link:hover' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_tab();
+
+        $this->end_controls_tabs();
 
         $this->end_controls_section();
     }
@@ -1350,13 +1414,11 @@ class EventListCardWidget extends Widget_Base
                 return;
             }
 
-            // Re-run query with the filtered IDs, preserving current sort
-            $args2 = [
-                'post_type'      => EventPostType::POST_TYPE,
-                'posts_per_page' => -1,
-                'post__in'       => $post_ids_to_render,
-                'orderby'        => 'post__in',
-            ];
+            // Re-run query with the filtered IDs, preserving user's chosen sort
+            $args2 = $args;
+            $args2['posts_per_page'] = -1;
+            $args2['post__in']       = $post_ids_to_render;
+            unset($args2['meta_query']); // already filtered via post__in
             $query = new \WP_Query($args2);
 
             if (!$query->have_posts()) {

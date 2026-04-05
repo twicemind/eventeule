@@ -436,37 +436,36 @@
     line-height: 1.6;
 }
 
-/* ─── Status-Badges ─── */
+/* ─── Status-Badges (analog category badge style) ─── */
 .eventeule-status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 10px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .04em;
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
-    width: fit-content;
+    align-self: flex-start;
 }
 
 .eventeule-status-badge--today {
-    background: #dbeafe;
-    color: #1d4ed8;
+    background: #3b82f6;
+    color: #fff;
 }
 
 .eventeule-status-badge--now {
-    background: #dcfce7;
-    color: #15803d;
+    background: #10b981;
+    color: #fff;
 }
 
 .eventeule-status-badge--soon {
-    background: #fef3c7;
-    color: #b45309;
+    background: #f59e0b;
+    color: #fff;
 }
 
 .eventeule-status-badge--cancelled {
-    background: #fee2e2;
-    color: #991b1b;
+    background: #ef4444;
+    color: #fff;
 }
 
 /* ─── Cancelled card state ─── */
