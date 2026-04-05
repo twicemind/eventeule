@@ -199,6 +199,9 @@ class ElementorIntegration
         require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventDateBoxWidget.php';
         require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventListWidget.php';
         require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventListCardWidget.php';
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventRegistrationButtonWidget.php';
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventCapacityWidget.php';
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventStatusWidget.php';
 
         // Register widgets
         $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventTitleWidget());
@@ -207,5 +210,8 @@ class ElementorIntegration
         $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventDateBoxWidget());
         $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventListWidget());
         $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventListCardWidget());
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventRegistrationButtonWidget());
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventCapacityWidget());
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventStatusWidget());
     }
 }

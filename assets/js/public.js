@@ -57,6 +57,9 @@ document.addEventListener('submit', function (e) {
             }
             form.style.display = 'none';
 
+            // Notify popup (if applicable) to auto-close after a short delay
+            document.dispatchEvent(new CustomEvent('ee:registration:success', { detail: { form: form } }));
+
             // Update available spots counter
             const counter = form.closest('.eventeule-registration').querySelector('.eventeule-registration__counter');
             if (counter) {
@@ -118,3 +121,68 @@ function showFormError(messages, msg) {
     messages.appendChild(p);
     messages.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+/* ========== Registration Popup ========== */
+
+(function () {
+    function openPopup(overlay) {
+        overlay.classList.add('is-open');
+        document.body.classList.add('ee-popup-open');
+        // Focus the first interactive element inside the dialog
+        const firstFocusable = overlay.querySelector(
+            'input:not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled])'
+        );
+        if (firstFocusable) {
+            setTimeout(function () { firstFocusable.focus(); }, 60);
+        }
+    }
+
+    function closePopup(overlay) {
+        if (!overlay) return;
+        overlay.classList.remove('is-open');
+        if (!document.querySelector('.ee-reg-popup-overlay.is-open')) {
+            document.body.classList.remove('ee-popup-open');
+        }
+    }
+
+    // Delegate all click events
+    document.addEventListener('click', function (e) {
+        // Open: click on the trigger button
+        const trigger = e.target.closest('.ee-reg-popup-trigger');
+        if (trigger && !trigger.disabled) {
+            const wrap    = trigger.closest('.ee-reg-popup-wrap');
+            const overlay = wrap ? wrap.querySelector('.ee-reg-popup-overlay') : null;
+            if (overlay) openPopup(overlay);
+            return;
+        }
+
+        // Close: X button
+        const closeBtn = e.target.closest('.ee-reg-popup-close');
+        if (closeBtn) {
+            closePopup(closeBtn.closest('.ee-reg-popup-overlay'));
+            return;
+        }
+
+        // Close: click directly on the backdrop (not on the dialog card)
+        if (e.target.classList.contains('ee-reg-popup-overlay')) {
+            closePopup(e.target);
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.ee-reg-popup-overlay.is-open').forEach(closePopup);
+        }
+    });
+
+    // Auto-close popup ~3 s after a successful registration
+    document.addEventListener('ee:registration:success', function (e) {
+        const form = e.detail && e.detail.form;
+        if (!form) return;
+        const overlay = form.closest('.ee-reg-popup-overlay');
+        if (overlay) {
+            setTimeout(function () { closePopup(overlay); }, 3500);
+        }
+    });
+}());

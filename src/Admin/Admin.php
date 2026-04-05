@@ -59,6 +59,26 @@ class Admin
             26
         );
 
+        // Submenu: Dashboard (= top-level page)
+        add_submenu_page(
+            'eventeule',
+            __('Dashboard', 'eventeule'),
+            __('Dashboard', 'eventeule'),
+            'manage_options',
+            'eventeule',
+            [$this, 'render_page']
+        );
+
+        // Submenu: Veranstaltungen → nav=veranstaltungen
+        add_submenu_page(
+            'eventeule',
+            __('Veranstaltungen', 'eventeule'),
+            __('Veranstaltungen', 'eventeule'),
+            'manage_options',
+            'eventeule-veranstaltungen',
+            [$this, 'render_page']
+        );
+
         // Hide the native WP CPT menu entry entirely — the EventEule app replaces it.
         add_action('admin_head', function () {
             echo '<style>
@@ -75,6 +95,12 @@ class Admin
     {
         if (!is_admin() || !isset($_GET['page']) && !isset($_GET['taxonomy'])) {
             return;
+        }
+
+        // eventeule-veranstaltungen submenu slug → nav=veranstaltungen
+        if (isset($_GET['page']) && $_GET['page'] === 'eventeule-veranstaltungen') {
+            wp_safe_redirect(add_query_arg(['page' => 'eventeule', 'nav' => 'veranstaltungen'], admin_url('admin.php')));
+            exit;
         }
 
         // edit.php?post_type=eventeule_event (native WP list) → nav=veranstaltungen

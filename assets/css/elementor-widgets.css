@@ -733,3 +733,495 @@
         display: none !important;
     }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Registration Popup Widget
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Trigger button ────────────────────────────────────────────────────────── */
+.ee-reg-popup-trigger-wrap {
+    display: block;
+}
+
+.ee-reg-popup-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    border: 2px solid transparent;
+    transition: background 0.18s, color 0.18s, border-color 0.18s,
+                transform 0.12s, box-shadow 0.18s;
+    text-decoration: none;
+    white-space: nowrap;
+    line-height: 1;
+    font-family: inherit;
+}
+
+.ee-reg-popup-trigger:focus-visible {
+    outline: 3px solid #a5b4fc;
+    outline-offset: 2px;
+}
+
+/* Size variants */
+.ee-reg-popup-trigger--sm { padding: 8px 18px;  font-size: 13px; border-radius: 6px; }
+.ee-reg-popup-trigger--md { padding: 12px 28px; font-size: 15px; border-radius: 8px; }
+.ee-reg-popup-trigger--lg { padding: 16px 36px; font-size: 17px; border-radius: 10px; }
+
+/* Type: primary */
+.ee-reg-popup-trigger--primary {
+    background: #6366f1;
+    color: #fff;
+    border-color: #6366f1;
+}
+.ee-reg-popup-trigger--primary:hover:not(:disabled) {
+    background: #4f46e5;
+    border-color: #4f46e5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+/* Type: secondary */
+.ee-reg-popup-trigger--secondary {
+    background: #8b5cf6;
+    color: #fff;
+    border-color: #8b5cf6;
+}
+.ee-reg-popup-trigger--secondary:hover:not(:disabled) {
+    background: #7c3aed;
+    border-color: #7c3aed;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+/* Type: outline */
+.ee-reg-popup-trigger--outline {
+    background: transparent;
+    color: #6366f1;
+    border-color: #6366f1;
+}
+.ee-reg-popup-trigger--outline:hover:not(:disabled) {
+    background: #6366f1;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* Disabled state */
+.ee-reg-popup-trigger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Spots indicator below button */
+.ee-reg-popup-spots {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #6b7280;
+}
+.ee-reg-popup-spots--full {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+/* ── Overlay ────────────────────────────────────────────────────────────────── */
+.ee-reg-popup-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99998;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    box-sizing: border-box;
+}
+
+.ee-reg-popup-overlay.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ── Dialog card ────────────────────────────────────────────────────────────── */
+.ee-reg-popup-dialog {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    transform: scale(0.94) translateY(12px);
+    transition: transform 0.25s ease;
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+}
+
+.ee-reg-popup-overlay.is-open .ee-reg-popup-dialog {
+    transform: scale(1) translateY(0);
+}
+
+/* ── Dialog header ──────────────────────────────────────────────────────────── */
+.ee-reg-popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
+    border-radius: 16px 16px 0 0;
+}
+
+.ee-reg-popup-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.3;
+}
+
+.ee-reg-popup-title .dashicons {
+    color: #6366f1;
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
+.ee-reg-popup-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.ee-reg-popup-close:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+
+/* ── Event info row ─────────────────────────────────────────────────────────── */
+.ee-reg-popup-event-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 24px;
+    background: #f9fafb;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 13px;
+    color: #4b5563;
+}
+
+.ee-reg-popup-event-name {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 14px;
+}
+
+.ee-reg-popup-event-meta span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.ee-reg-popup-event-meta svg {
+    flex-shrink: 0;
+    color: #6366f1;
+    opacity: 0.8;
+}
+
+/* ── Capacity indicator ─────────────────────────────────────────────────────── */
+.ee-reg-popup-capacity {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 24px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0369a1;
+    background: #e0f2fe;
+    border-bottom: 1px solid #bae6fd;
+}
+
+.ee-reg-popup-capacity--warning {
+    color: #92400e;
+    background: #fef3c7;
+    border-bottom-color: #fde68a;
+}
+
+.ee-reg-popup-capacity--full {
+    color: #991b1b;
+    background: #fee2e2;
+    border-bottom-color: #fca5a5;
+}
+
+/* ── Body / Form ─────────────────────────────────────────────────────────────── */
+.ee-reg-popup-body {
+    padding: 20px 24px 28px;
+}
+
+/* Strip the inline-page form container styles inside the popup */
+.ee-reg-popup-body .eventeule-registration {
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    border-radius: 0;
+}
+
+/* The popup header already shows the title */
+.ee-reg-popup-body .eventeule-registration__title {
+    display: none;
+}
+
+/* Capacity shown in the capacity bar above */
+.ee-reg-popup-body .eventeule-registration__counter {
+    display: none;
+}
+
+/* ── Editor placeholder ─────────────────────────────────────────────────────── */
+.ee-reg-popup-notice {
+    padding: 12px 16px;
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #92400e;
+}
+
+/* ── Body scroll-lock when popup is open ────────────────────────────────────── */
+body.ee-popup-open {
+    overflow: hidden;
+}
+
+/* ── Responsive: bottom-sheet on mobile ─────────────────────────────────────── */
+@media (max-width: 600px) {
+    .ee-reg-popup-overlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .ee-reg-popup-dialog {
+        max-width: 100%;
+        border-radius: 20px 20px 0 0;
+        max-height: 93vh;
+        transform: translateY(24px);
+    }
+
+    .ee-reg-popup-overlay.is-open .ee-reg-popup-dialog {
+        transform: translateY(0);
+    }
+
+    .ee-reg-popup-header {
+        border-radius: 20px 20px 0 0;
+        padding: 16px 20px 14px;
+    }
+
+    .ee-reg-popup-event-meta,
+    .ee-reg-popup-capacity {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .ee-reg-popup-body {
+        padding: 16px 20px 32px;
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Capacity Widget  (.ee-capacity)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.ee-capacity {
+    font-size: 14px;
+    color: #1f2937;
+}
+
+.ee-capacity__label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+/* ── Numbers / header row ──────────────────────────────────────────────────── */
+.ee-capacity__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+}
+
+.ee-capacity__numbers {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* ── Progress bar ──────────────────────────────────────────────────────────── */
+.ee-capacity__track {
+    width: 100%;
+    height: 8px;
+    background-color: #e5e7eb;
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.ee-capacity__fill {
+    height: 100%;
+    border-radius: 99px;
+    background-color: #6366f1;
+    transition: width 0.4s ease;
+}
+
+/* ── Text variant ──────────────────────────────────────────────────────────── */
+.ee-capacity__text {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ee-capacity--full .ee-capacity__text {
+    color: #dc2626;
+}
+
+.ee-capacity--warning .ee-capacity__text {
+    color: #d97706;
+}
+
+/* ── Unlimited ─────────────────────────────────────────────────────────────── */
+.ee-capacity__unlimited {
+    font-size: 13px;
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* ── Badge variant ─────────────────────────────────────────────────────────── */
+.ee-capacity__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.ee-capacity__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+}
+
+.ee-capacity__badge--available {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.ee-capacity--warning .ee-capacity__badge--available {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.ee-capacity__badge--full {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.ee-capacity__badge--total {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Status Widget  (.ee-status-badge)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.ee-status-badge-wrap {
+    display: flex; /* overridden by Elementor align selector */
+}
+
+.ee-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    line-height: 1.5;
+}
+
+/* ── Filled (default) ─────────────────────────────────────── */
+.ee-status-badge--now       { background: #10b981; color: #fff; }
+.ee-status-badge--today     { background: #3b82f6; color: #fff; }
+.ee-status-badge--soon      { background: #f59e0b; color: #fff; }
+.ee-status-badge--cancelled { background: #ef4444; color: #fff; }
+.ee-status-badge--past      { background: #9ca3af; color: #fff; }
+
+/* ── Outline variant ──────────────────────────────────────── */
+.ee-status-badge.is-outline {
+    background: transparent !important;
+    border: 2px solid currentColor;
+}
+.ee-status-badge--now.is-outline       { color: #10b981; border-color: #10b981; }
+.ee-status-badge--today.is-outline     { color: #3b82f6; border-color: #3b82f6; }
+.ee-status-badge--soon.is-outline      { color: #d97706; border-color: #d97706; }
+.ee-status-badge--cancelled.is-outline { color: #ef4444; border-color: #ef4444; }
+.ee-status-badge--past.is-outline      { color: #9ca3af; border-color: #9ca3af; }
+
+/* ── Pill preset ──────────────────────────────────────────── */
+.ee-status-badge--preset-pill {
+    border-radius: 9999px;
+    padding: 4px 14px;
+}
+
+/* ── Tag preset (sharp corners, small) ───────────────────── */
+.ee-status-badge--preset-tag {
+    border-radius: 3px;
+    font-size: 11px;
+    padding: 3px 8px;
+    letter-spacing: 0.7px;
+}
+
+/* ── Plain text preset ────────────────────────────────────── */
+.ee-status-badge--preset-plain {
+    background: transparent !important;
+    padding: 0;
+    border-radius: 0;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0;
+    text-transform: none;
+}
+.ee-status-badge--now.ee-status-badge--preset-plain       { color: #059669; }
+.ee-status-badge--today.ee-status-badge--preset-plain     { color: #2563eb; }
+.ee-status-badge--soon.ee-status-badge--preset-plain      { color: #d97706; }
+.ee-status-badge--cancelled.ee-status-badge--preset-plain { color: #dc2626; }
+.ee-status-badge--past.ee-status-badge--preset-plain      { color: #6b7280; }

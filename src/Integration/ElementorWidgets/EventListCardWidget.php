@@ -1462,11 +1462,11 @@ class EventListCardWidget extends Widget_Base
         }
         // ─────────────────────────────────────────────────────────────────
 
-        $tz          = wp_timezone();
-        $now_ts      = time(); // real UTC – consistent with DateTimeImmutable timestamps below
-        $today_ymd   = wp_date('Y-m-d');  // local date in WP timezone
+        // Current local datetime as comparable string (same format as stored meta)
+        $now_local   = current_time('Y-m-d H:i');  // e.g. '2026-04-05 23:40'
+        $today_ymd   = current_time('Y-m-d');       // e.g. '2026-04-05'
         $soon_days   = max(1, (int) ($settings['soon_days'] ?? 7));
-        $soon_ts_end = (new \DateTimeImmutable($today_ymd, $tz))->modify("+{$soon_days} days")->getTimestamp();
+        $soon_ymd    = date('Y-m-d', strtotime("+{$soon_days} days", current_time('timestamp')));
 
         echo '<div class="eventeule-event-list-card">';
 
@@ -1486,28 +1486,24 @@ class EventListCardWidget extends Widget_Base
             $status_badge       = '';
             $status_badge_class = '';
             if (($settings['show_status_badge'] ?? 'yes') === 'yes' && $start_date !== '') {
-                $event_start_str = $start_date . ' ' . ($start_time ?: '00:00');
-                $event_start_dt  = \DateTimeImmutable::createFromFormat('Y-m-d H:i', $event_start_str, $tz);
-                $event_start_ts  = $event_start_dt !== false ? $event_start_dt->getTimestamp() : 0;
-
-                $event_end_ts = $event_start_ts + 3600; // fallback: 1 h
-                if ($end_time) {
-                    $event_end_dt = \DateTimeImmutable::createFromFormat('Y-m-d H:i', $start_date . ' ' . trim($end_time), $tz);
-                    if ($event_end_dt !== false) {
-                        $event_end_ts = $event_end_dt->getTimestamp() + 59; // include full last minute
-                    }
-                }
+                // All comparisons use local datetime strings (same format as stored meta).
+                // This avoids any server/WP timezone mismatch.
+                $event_start_local = $start_date . ' ' . ($start_time ?: '00:00');
+                $end_hi            = $end_time
+                    ? substr(trim($end_time), 0, 5)  // take only H:i part
+                    : date('H:i', strtotime('+1 hour', strtotime($event_start_local)));
+                $event_end_local   = $start_date . ' ' . $end_hi;
 
                 if ($is_cancelled) {
                     $status_badge       = __('Abgesagt', 'eventeule');
                     $status_badge_class = 'eventeule-status-badge--cancelled';
-                } elseif ($now_ts >= $event_start_ts && $now_ts <= $event_end_ts) {
+                } elseif ($now_local >= $event_start_local && $now_local <= $event_end_local) {
                     $status_badge       = __('Jetzt', 'eventeule');
                     $status_badge_class = 'eventeule-status-badge--now';
                 } elseif ($start_date === $today_ymd) {
                     $status_badge       = __('Heute', 'eventeule');
                     $status_badge_class = 'eventeule-status-badge--today';
-                } elseif ($event_start_ts > $now_ts && $event_start_ts <= $soon_ts_end) {
+                } elseif ($start_date > $today_ymd && $start_date <= $soon_ymd) {
                     $status_badge       = __('Bald', 'eventeule');
                     $status_badge_class = 'eventeule-status-badge--soon';
                 }
