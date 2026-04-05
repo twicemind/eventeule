@@ -1267,9 +1267,43 @@ class EventListCardWidget extends Widget_Base
             ]
         );
 
+        $this->add_control(
+            'link_hover_underline',
+            [
+                'label'   => __('Unterstreichung', 'eventeule'),
+                'type'    => Controls_Manager::SELECT,
+                'default' => 'underline',
+                'options' => [
+                    'underline' => __('Unterstrichen', 'eventeule'),
+                    'none'      => __('Keine', 'eventeule'),
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-event-card-link:hover' => 'text-decoration: {{VALUE}};',
+                ],
+            ]
+        );
+
         $this->end_controls_tab();
 
         $this->end_controls_tabs();
+
+        $this->add_control(
+            'link_underline',
+            [
+                'label'     => __('Unterstreichung (Normal)', 'eventeule'),
+                'type'      => Controls_Manager::SELECT,
+                'default'   => 'none',
+                'options'   => [
+                    'none'      => __('Keine', 'eventeule'),
+                    'underline' => __('Unterstrichen', 'eventeule'),
+                ],
+                'separator' => 'before',
+                'condition' => ['button_style' => 'link'],
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-event-card-link' => 'text-decoration: {{VALUE}};',
+                ],
+            ]
+        );
 
         $this->end_controls_section();
     }
@@ -1428,10 +1462,11 @@ class EventListCardWidget extends Widget_Base
         }
         // ─────────────────────────────────────────────────────────────────
 
-        $now_ts      = current_time('timestamp');
-        $today_ymd   = current_time('Y-m-d');
+        $tz          = wp_timezone();
+        $now_ts      = time(); // real UTC – consistent with DateTimeImmutable timestamps below
+        $today_ymd   = wp_date('Y-m-d');  // local date in WP timezone
         $soon_days   = max(1, (int) ($settings['soon_days'] ?? 7));
-        $soon_ts_end = strtotime("+{$soon_days} days", strtotime($today_ymd));
+        $soon_ts_end = (new \DateTimeImmutable($today_ymd, $tz))->modify("+{$soon_days} days")->getTimestamp();
 
         echo '<div class="eventeule-event-list-card">';
 
@@ -1451,10 +1486,17 @@ class EventListCardWidget extends Widget_Base
             $status_badge       = '';
             $status_badge_class = '';
             if (($settings['show_status_badge'] ?? 'yes') === 'yes' && $start_date !== '') {
-                $event_start_ts = strtotime($start_date . ($start_time ? ' ' . $start_time : ' 00:00'));
-                $event_end_ts   = $end_time
-                    ? strtotime($start_date . ' ' . $end_time)
-                    : ($event_start_ts + 3600); // assume 1 h if no end
+                $event_start_str = $start_date . ' ' . ($start_time ?: '00:00');
+                $event_start_dt  = \DateTimeImmutable::createFromFormat('Y-m-d H:i', $event_start_str, $tz);
+                $event_start_ts  = $event_start_dt !== false ? $event_start_dt->getTimestamp() : 0;
+
+                $event_end_ts = $event_start_ts + 3600; // fallback: 1 h
+                if ($end_time) {
+                    $event_end_dt = \DateTimeImmutable::createFromFormat('Y-m-d H:i', $start_date . ' ' . trim($end_time), $tz);
+                    if ($event_end_dt !== false) {
+                        $event_end_ts = $event_end_dt->getTimestamp() + 59; // include full last minute
+                    }
+                }
 
                 if ($is_cancelled) {
                     $status_badge       = __('Abgesagt', 'eventeule');

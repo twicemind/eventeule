@@ -81,6 +81,16 @@ class Admin
             return;
         }
 
+        // edit.php?post_type=eventeule_event (native WP list) → nav=veranstaltungen
+        if (
+            isset($_GET['post_type']) && $_GET['post_type'] === EventPostType::POST_TYPE
+            && isset($_SERVER['PHP_SELF'])
+            && str_contains((string) $_SERVER['PHP_SELF'], 'edit.php')
+        ) {
+            wp_safe_redirect(add_query_arg(['page' => 'eventeule', 'nav' => 'veranstaltungen'], admin_url('admin.php')));
+            exit;
+        }
+
         // eventeule-registrations → nav=anmeldungen
         if (isset($_GET['page']) && $_GET['page'] === 'eventeule-registrations') {
             $args = ['page' => 'eventeule', 'nav' => 'anmeldungen'];

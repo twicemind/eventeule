@@ -33,7 +33,7 @@ class EventPostType
             'public'             => true,
             'publicly_queryable' => true,
             'show_ui'            => true,
-            'show_in_menu'       => true,
+            'show_in_menu'       => 'eventeule',
             'show_in_rest'       => true,
             'query_var'          => true,
             'menu_icon'          => 'dashicons-calendar-alt',
