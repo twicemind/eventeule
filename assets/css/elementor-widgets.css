@@ -1253,3 +1253,121 @@ body.ee-popup-open {
 .ee-status-badge--soon.ee-status-badge--preset-plain      { color: #d97706; }
 .ee-status-badge--cancelled.ee-status-badge--preset-plain { color: #dc2626; }
 .ee-status-badge--past.ee-status-badge--preset-plain      { color: #6b7280; }
+
+/* ==========================================================================
+   Metadata Widgets (Time, Location, Price, ShortDesc, Note, Category, RegUrl)
+   ========================================================================== */
+
+/* ── Shared inline-meta base ── */
+.ee-event-time,
+.ee-event-location,
+.ee-event-price {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.ee-event-time__icon,
+.ee-event-location__icon,
+.ee-event-price__icon {
+    flex-shrink: 0;
+    font-size: 1em;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* ── Short description ── */
+.ee-event-short-desc {
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* ── Note ── */
+.ee-event-note {
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.ee-event-note__header {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.ee-event-note__icon {
+    flex-shrink: 0;
+    font-size: 1em;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* ── Category ── */
+.ee-event-category {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+}
+
+.ee-event-category a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.ee-event-category a:hover {
+    text-decoration: underline;
+}
+
+.ee-event-category__badge {
+    display: inline-block;
+    padding: 3px 10px;
+    background: #ede9fe;
+    color: #6d28d9;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+/* ── Registration URL Button ── */
+.ee-event-regurl-wrap {
+    display: block;
+}
+
+.ee-event-regurl-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 24px;
+    background: #6366f1;
+    color: #fff !important;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s, transform 0.12s;
+}
+
+.ee-event-regurl-btn:hover {
+    background: #4f46e5;
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+.ee-event-regurl-link {
+    color: #6366f1;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.ee-event-regurl-link:hover {
+    color: #4f46e5;
+}

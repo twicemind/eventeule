@@ -202,6 +202,13 @@ class ElementorIntegration
         require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventRegistrationButtonWidget.php';
         require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventCapacityWidget.php';
         require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventStatusWidget.php';
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventTimeWidget.php';
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventLocationWidget.php';
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventPriceWidget.php';
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventShortDescriptionWidget.php';
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventNoteWidget.php';
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventCategoryWidget.php';
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventRegistrationUrlWidget.php';
 
         // Register widgets
         $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventTitleWidget());
@@ -213,5 +220,12 @@ class ElementorIntegration
         $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventRegistrationButtonWidget());
         $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventCapacityWidget());
         $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventStatusWidget());
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventTimeWidget());
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventLocationWidget());
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventPriceWidget());
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventShortDescriptionWidget());
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventNoteWidget());
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventCategoryWidget());
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventRegistrationUrlWidget());
     }
 }
