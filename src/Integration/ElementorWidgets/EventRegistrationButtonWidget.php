@@ -263,6 +263,8 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
         $popup_title     = $settings['popup_title']  ?? __('Anmeldung', 'eventeule');
         $show_event_info = ($settings['show_event_info'] ?? 'yes') === 'yes';
         $popup_id        = 'ee-reg-popup-' . esc_attr($this->get_id());
+        // In editor mode the overlay should be pre-opened so all controls are live-editable
+        $overlay_extra   = $is_edit ? ' is-open ee-reg-popup-overlay--editor' : '';
 
         // Field labels / types
         $field_labels = [
@@ -325,7 +327,7 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
             <!-- ── Registration popup ─────────────────────────────────── -->
             <div
                 id="<?php echo $popup_id; ?>"
-                class="ee-reg-popup-overlay"
+                class="ee-reg-popup-overlay<?php echo $overlay_extra; ?>"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="<?php echo $popup_id; ?>-title"
@@ -494,7 +496,8 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Read a JSON-encoded or array post-meta field with a fallback default.
+     * Read a comma-separated post-meta field with a fallback default.
+     * Fields are stored as e.g. "firstname,lastname,email,phone".
      *
      * @param  string   $meta_key
      * @param  int      $event_id
@@ -503,17 +506,11 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
      */
     private function parse_reg_fields(string $meta_key, int $event_id, array $defaults): array
     {
-        $stored = get_post_meta($event_id, $meta_key, true);
-
-        if (is_array($stored) && !empty($stored)) {
-            return $stored;
+        $raw = (string) get_post_meta($event_id, $meta_key, true);
+        if ($raw === '') {
+            return $defaults;
         }
-
-        $decoded = json_decode((string) $stored, true);
-        if (is_array($decoded) && !empty($decoded)) {
-            return $decoded;
-        }
-
-        return $defaults;
+        $fields = array_values(array_filter(array_map('trim', explode(',', $raw))));
+        return $fields ?: $defaults;
     }
 }

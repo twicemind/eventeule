@@ -827,6 +827,24 @@
     font-weight: 600;
 }
 
+/* ── Editor preview: show popup inline so all controls are live-editable ─── */
+.ee-reg-popup-overlay.ee-reg-popup-overlay--editor {
+    position: relative !important;
+    inset: auto !important;
+    background: transparent !important;
+    padding: 0 !important;
+    display: block !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    margin-top: 12px;
+}
+
+.ee-reg-popup-overlay.ee-reg-popup-overlay--editor .ee-reg-popup-dialog {
+    transform: none !important;
+    max-height: none !important;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12);
+}
+
 /* ── Overlay ────────────────────────────────────────────────────────────────── */
 .ee-reg-popup-overlay {
     position: fixed;

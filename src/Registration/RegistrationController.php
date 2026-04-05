@@ -155,6 +155,12 @@ class RegistrationController
             return $content;
         }
 
+        // If the page is built with Elementor, the user should use the Popup-Widget instead.
+        // Auto-appending would duplicate the form below the Elementor content.
+        if (get_post_meta($post->ID, '_elementor_edit_mode', true) === 'builder') {
+            return $content;
+        }
+
         return $content . $this->render_registration_form((int) $post->ID);
     }
 
