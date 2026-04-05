@@ -759,10 +759,20 @@
     font-family: inherit;
 }
 
+.ee-reg-popup-trigger:focus {
+    outline: none;
+}
 .ee-reg-popup-trigger:focus-visible {
     outline: 3px solid #a5b4fc;
     outline-offset: 2px;
 }
+/* Higher specificity to override theme button styles (e.g. .wrapper button { border: ... }) */
+.ee-reg-popup-wrap .ee-reg-popup-trigger {
+    border: 2px solid transparent;
+}
+.ee-reg-popup-wrap .ee-reg-popup-trigger--primary   { border-color: #6366f1; }
+.ee-reg-popup-wrap .ee-reg-popup-trigger--secondary { border-color: #8b5cf6; }
+.ee-reg-popup-wrap .ee-reg-popup-trigger--outline   { border-color: #6366f1; }
 
 /* Size variants */
 .ee-reg-popup-trigger--sm { padding: 8px 18px;  font-size: 13px; border-radius: 6px; }

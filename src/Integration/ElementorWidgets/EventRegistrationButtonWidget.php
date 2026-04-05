@@ -159,11 +159,6 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
             'type'      => \Elementor\Controls_Manager::COLOR,
             'selectors' => ['{{WRAPPER}} .ee-reg-popup-trigger' => 'color: {{VALUE}};'],
         ]);
-        $this->add_control('button_border_color', [
-            'label'     => __('Rahmenfarbe', 'eventeule'),
-            'type'      => \Elementor\Controls_Manager::COLOR,
-            'selectors' => ['{{WRAPPER}} .ee-reg-popup-trigger' => 'border-color: {{VALUE}};'],
-        ]);
         $this->end_controls_tab();
 
         $this->start_controls_tab('button_tab_hover', ['label' => __('Hover', 'eventeule')]);
@@ -180,6 +175,16 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
         $this->end_controls_tab();
 
         $this->end_controls_tabs();
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name'      => 'button_border',
+                'label'     => __('Rahmen', 'eventeule'),
+                'selector'  => '{{WRAPPER}} .ee-reg-popup-trigger',
+                'separator' => 'before',
+            ]
+        );
 
         $this->add_control('button_border_radius', [
             'label'     => __('Eckenradius', 'eventeule'),
@@ -203,12 +208,15 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
             'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
         ]);
 
-        $this->add_control('popup_bg_color', [
-            'label'     => __('Hintergrundfarbe', 'eventeule'),
-            'type'      => \Elementor\Controls_Manager::COLOR,
-            'default'   => '#ffffff',
-            'selectors' => ['{{WRAPPER}} .ee-reg-popup-dialog' => 'background-color: {{VALUE}};'],
-        ]);
+        $this->add_group_control(
+            \Elementor\Group_Control_Background::get_type(),
+            [
+                'name'     => 'popup_bg',
+                'label'    => __('Hintergrund', 'eventeule'),
+                'types'    => ['classic', 'gradient'],
+                'selector' => '{{WRAPPER}} .ee-reg-popup-dialog',
+            ]
+        );
 
         $this->add_control('popup_border_radius', [
             'label'     => __('Eckenradius', 'eventeule'),
