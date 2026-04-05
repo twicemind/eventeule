@@ -436,6 +436,45 @@
     line-height: 1.6;
 }
 
+/* ─── Status-Badges ─── */
+.eventeule-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    width: fit-content;
+}
+
+.eventeule-status-badge--today {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.eventeule-status-badge--now {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.eventeule-status-badge--soon {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.eventeule-status-badge--cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* ─── Cancelled card state ─── */
+.eventeule-event-card--cancelled {
+    opacity: .7;
+    border-color: #fca5a5 !important;
+}
+
 .eventeule-no-events {
     text-align: center;
     padding: 40px 20px;
@@ -628,6 +667,20 @@
     background: #4f46e5;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.eventeule-event-card-link {
+    display: inline-block;
+    color: #6366f1;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.eventeule-event-card-link:hover {
+    color: #4f46e5;
+    text-decoration: underline;
 }
 
 /* No Events Message */

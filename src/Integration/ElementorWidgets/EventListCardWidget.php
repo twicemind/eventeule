@@ -135,6 +135,35 @@ class EventListCardWidget extends Widget_Base
             ]
         );
 
+        $this->add_control(
+            'opening_hours_mode',
+            [
+                'label' => __('Öffnungszeiten-Termine', 'eventeule'),
+                'type' => Controls_Manager::SELECT,
+                'default' => 'all',
+                'options' => [
+                    'all'      => __('Alle anzeigen', 'eventeule'),
+                    'next_per_schedule' => __('Nur nächster Termin je Plan', 'eventeule'),
+                    'next_one' => __('Nur allernächster Termin', 'eventeule'),
+                ],
+                'separator' => 'before',
+                'description' => __('Filtert Events, die aus einem Öffnungszeiten-Plan stammen.', 'eventeule'),
+            ]
+        );
+
+        $this->add_control(
+            'soon_days',
+            [
+                'label' => __('„Bald"-Schwelle (Tage)', 'eventeule'),
+                'type' => Controls_Manager::NUMBER,
+                'default' => 7,
+                'min' => 1,
+                'max' => 30,
+                'separator' => 'before',
+                'description' => __('Events innerhalb dieser Anzahl Tage erhalten das „Bald"-Badge.', 'eventeule'),
+            ]
+        );
+
         $this->end_controls_section();
 
         // Layout Section
@@ -242,6 +271,38 @@ class EventListCardWidget extends Widget_Base
         );
 
         $this->add_control(
+            'date_format',
+            [
+                'label'   => __('Datumsformat', 'eventeule'),
+                'type'    => Controls_Manager::SELECT,
+                'default' => 'site',
+                'options' => [
+                    'site'     => __('WordPress-Standard (Einstellungen)', 'eventeule'),
+                    'd.m.Y'    => __('TT.MM.JJJJ (31.12.2025)', 'eventeule'),
+                    'd. F Y'   => __('TT. Monat JJJJ (31. Dezember 2025)', 'eventeule'),
+                    'j. F Y'   => __('T. Monat JJJJ (1. Januar 2025)', 'eventeule'),
+                    'D, d.m.Y' => __('Wochentag TT.MM.JJJJ (Mi, 31.12.2025)', 'eventeule'),
+                    'l, j. F Y'=> __('Wochentag T. Monat JJJJ (Mittwoch, 1. Januar 2025)', 'eventeule'),
+                    'Y-m-d'    => __('JJJJ-MM-TT (2025-12-31)', 'eventeule'),
+                    'custom'   => __('Benutzerdefiniert', 'eventeule'),
+                ],
+                'condition' => ['show_date' => 'yes'],
+            ]
+        );
+
+        $this->add_control(
+            'date_format_custom',
+            [
+                'label'       => __('Eigenes Format (PHP)', 'eventeule'),
+                'type'        => Controls_Manager::TEXT,
+                'default'     => 'd.m.Y',
+                'placeholder' => 'd.m.Y',
+                'description' => __('PHP-Datumsformat, z.B. d.m.Y oder j. F Y', 'eventeule'),
+                'condition'   => ['show_date' => 'yes', 'date_format' => 'custom'],
+            ]
+        );
+
+        $this->add_control(
             'show_time',
             [
                 'label' => __('Show Time', 'eventeule'),
@@ -297,6 +358,22 @@ class EventListCardWidget extends Widget_Base
         );
 
         $this->add_control(
+            'button_style',
+            [
+                'label'   => __('Button-Stil', 'eventeule'),
+                'type'    => Controls_Manager::SELECT,
+                'default' => 'button',
+                'options' => [
+                    'button' => __('Button (gestylt)', 'eventeule'),
+                    'link'   => __('Einfacher Link', 'eventeule'),
+                ],
+                'condition' => [
+                    'show_button' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
             'show_excerpt',
             [
                 'label' => __('Auszug anzeigen', 'eventeule'),
@@ -317,6 +394,17 @@ class EventListCardWidget extends Widget_Base
                 'condition' => [
                     'show_excerpt' => 'yes',
                 ],
+            ]
+        );
+
+        $this->add_control(
+            'show_status_badge',
+            [
+                'label' => __('Status-Badge anzeigen', 'eventeule'),
+                'type' => Controls_Manager::SWITCHER,
+                'default' => 'yes',
+                'separator' => 'before',
+                'description' => __('Zeigt „Heute", „Jetzt", „Bald" oder „Abgesagt"-Badges.', 'eventeule'),
             ]
         );
 
@@ -1212,6 +1300,77 @@ class EventListCardWidget extends Widget_Base
             return;
         }
 
+        // ── Öffnungszeiten-Filterlogik ────────────────────────────────────
+        $oh_mode = $settings['opening_hours_mode'] ?? 'all';
+        $post_ids_to_render = [];
+
+        if ($oh_mode !== 'all') {
+            // Collect all matching post IDs with their opening-id and date
+            $oh_candidates = []; // ['post_id' => …, 'opening_id' => …, 'start_date' => …]
+            $regular_ids   = [];
+
+            while ($query->have_posts()) {
+                $query->the_post();
+                $pid    = (int) get_the_ID();
+                $oh_id  = (int) get_post_meta($pid, '_eventeule_opening_id', true);
+                $s_date = (string) get_post_meta($pid, '_eventeule_start_date', true);
+
+                if ($oh_id > 0) {
+                    $oh_candidates[] = ['post_id' => $pid, 'opening_id' => $oh_id, 'start_date' => $s_date];
+                } else {
+                    $regular_ids[] = $pid;
+                }
+            }
+            wp_reset_postdata();
+
+            // Sort candidates ascending by date so earliest is first
+            usort($oh_candidates, fn($a, $b) => strcmp($a['start_date'], $b['start_date']));
+
+            if ($oh_mode === 'next_per_schedule') {
+                // Keep only the first (earliest) candidate per opening_id
+                $seen = [];
+                foreach ($oh_candidates as $c) {
+                    if (!isset($seen[$c['opening_id']])) {
+                        $seen[$c['opening_id']] = true;
+                        $post_ids_to_render[]    = $c['post_id'];
+                    }
+                }
+            } elseif ($oh_mode === 'next_one') {
+                // Keep only the single earliest candidate across all plans
+                if (!empty($oh_candidates)) {
+                    $post_ids_to_render[] = $oh_candidates[0]['post_id'];
+                }
+            }
+
+            // Merge regular events back (preserving original order)
+            $post_ids_to_render = array_merge($regular_ids, $post_ids_to_render);
+
+            if (empty($post_ids_to_render)) {
+                echo '<div class="eventeule-no-events">' . __('No events found.', 'eventeule') . '</div>';
+                return;
+            }
+
+            // Re-run query with the filtered IDs, preserving current sort
+            $args2 = [
+                'post_type'      => EventPostType::POST_TYPE,
+                'posts_per_page' => -1,
+                'post__in'       => $post_ids_to_render,
+                'orderby'        => 'post__in',
+            ];
+            $query = new \WP_Query($args2);
+
+            if (!$query->have_posts()) {
+                echo '<div class="eventeule-no-events">' . __('No events found.', 'eventeule') . '</div>';
+                return;
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────
+
+        $now_ts      = current_time('timestamp');
+        $today_ymd   = current_time('Y-m-d');
+        $soon_days   = max(1, (int) ($settings['soon_days'] ?? 7));
+        $soon_ts_end = strtotime("+{$soon_days} days", strtotime($today_ymd));
+
         echo '<div class="eventeule-event-list-card">';
 
         while ($query->have_posts()) {
@@ -1224,6 +1383,32 @@ class EventListCardWidget extends Widget_Base
             $end_time   = get_post_meta($event_id, '_eventeule_end_time', true);
             $location = get_post_meta($event_id, '_eventeule_location', true);
             $registration_url = get_post_meta($event_id, '_eventeule_registration_url', true);
+            $is_cancelled = get_post_meta($event_id, '_eventeule_cancelled', true) === '1';
+
+            // ── Status-Badge berechnen ────────────────────────────────────
+            $status_badge       = '';
+            $status_badge_class = '';
+            if (($settings['show_status_badge'] ?? 'yes') === 'yes' && $start_date !== '') {
+                $event_start_ts = strtotime($start_date . ($start_time ? ' ' . $start_time : ' 00:00'));
+                $event_end_ts   = $end_time
+                    ? strtotime($start_date . ' ' . $end_time)
+                    : ($event_start_ts + 3600); // assume 1 h if no end
+
+                if ($is_cancelled) {
+                    $status_badge       = __('Abgesagt', 'eventeule');
+                    $status_badge_class = 'eventeule-status-badge--cancelled';
+                } elseif ($now_ts >= $event_start_ts && $now_ts <= $event_end_ts) {
+                    $status_badge       = __('Jetzt', 'eventeule');
+                    $status_badge_class = 'eventeule-status-badge--now';
+                } elseif ($start_date === $today_ymd) {
+                    $status_badge       = __('Heute', 'eventeule');
+                    $status_badge_class = 'eventeule-status-badge--today';
+                } elseif ($event_start_ts > $now_ts && $event_start_ts <= $soon_ts_end) {
+                    $status_badge       = __('Bald', 'eventeule');
+                    $status_badge_class = 'eventeule-status-badge--soon';
+                }
+            }
+            // ─────────────────────────────────────────────────────────────
 
             // Get categories
             $categories = get_the_terms($event_id, EventCategoryTaxonomy::TAXONOMY);
@@ -1232,7 +1417,12 @@ class EventListCardWidget extends Widget_Base
                 $category_name = $categories[0]->name;
             }
 
-            echo '<div class="eventeule-event-card">';
+            $card_class = 'eventeule-event-card';
+            if ($is_cancelled) {
+                $card_class .= ' eventeule-event-card--cancelled';
+            }
+
+            echo '<div class="' . esc_attr($card_class) . '">';
 
             // Image
             if ($settings['show_image'] === 'yes' && has_post_thumbnail()) {
@@ -1246,6 +1436,11 @@ class EventListCardWidget extends Widget_Base
 
             // Content
             echo '<div class="eventeule-event-card-content">';
+
+            // Status badge
+            if ($status_badge !== '') {
+                echo '<span class="eventeule-status-badge ' . esc_attr($status_badge_class) . '">' . esc_html($status_badge) . '</span>';
+            }
 
             // Category
             if ($settings['show_category'] === 'yes' && $category_name) {
@@ -1270,7 +1465,13 @@ class EventListCardWidget extends Widget_Base
             }
 
             if ($settings['show_date'] === 'yes' && $start_date) {
-                $formatted_date = date_i18n(get_option('date_format'), strtotime($start_date));
+                $df = $settings['date_format'] ?? 'site';
+                if ($df === 'site') {
+                    $df = get_option('date_format');
+                } elseif ($df === 'custom') {
+                    $df = !empty($settings['date_format_custom']) ? $settings['date_format_custom'] : 'd.m.Y';
+                }
+                $formatted_date = date_i18n($df, strtotime($start_date));
                 $date_classes = 'eventeule-meta-date' . $this->get_responsive_classes('hide_date_on');
                 $meta_items[] = '<span class="' . esc_attr($date_classes) . '"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/></svg> ' . esc_html($formatted_date) . '</span>';
             }
@@ -1319,9 +1520,11 @@ class EventListCardWidget extends Widget_Base
                     $button_url = $registration_url;
                 }
 
+                $btn_style = $settings['button_style'] ?? 'button';
+                $btn_class = $btn_style === 'link' ? 'eventeule-event-card-link' : 'eventeule-event-card-button';
                 $footer_classes = 'eventeule-event-card-footer' . $this->get_responsive_classes('hide_button_on');
                 echo '<div class="' . esc_attr($footer_classes) . '">';
-                echo '<a href="' . esc_url($button_url) . '" class="eventeule-event-card-button">';
+                echo '<a href="' . esc_url($button_url) . '" class="' . esc_attr($btn_class) . '">';
                 echo esc_html($settings['button_text']);
                 echo '</a>';
                 echo '</div>';
@@ -1391,7 +1594,8 @@ class EventListCardWidget extends Widget_Base
 
                         <# if (settings.show_button === 'yes') { #>
                             <div class="eventeule-event-card-footer">
-                                <a href="#" class="eventeule-event-card-button">{{ settings.button_text }}</a>
+                                <# var btnClass = (settings.button_style === 'link') ? 'eventeule-event-card-link' : 'eventeule-event-card-button'; #>
+                                <a href="#" class="{{ btnClass }}">{{ settings.button_text }}</a>
                             </div>
                         <# } #>
                     </div>
