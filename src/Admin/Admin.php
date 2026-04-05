@@ -59,14 +59,10 @@ class Admin
             26
         );
 
-        // Hide native taxonomy + registrations submenu from the sidebar —
-        // they now live inside the EventEule app under nav=kategorien / nav=anmeldungen.
+        // Hide the native WP CPT menu entry entirely — the EventEule app replaces it.
         add_action('admin_head', function () {
             echo '<style>
-                #menu-posts-eventeule_event .wp-submenu a[href*="taxonomy=eventeule_category"],
-                #menu-posts-eventeule_event .wp-submenu a[href*="page=eventeule-registrations"] {
-                    display: none !important;
-                }
+                #menu-posts-eventeule_event { display: none !important; }
             </style>';
         });
     }
