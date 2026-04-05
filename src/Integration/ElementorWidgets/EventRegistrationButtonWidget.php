@@ -109,9 +109,13 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
 
         $this->end_controls_section();
 
-        // ── Button Style ─────────────────────────────────────────────────────
+        // ══════════════════════════════════════════════════════════════════════
+        // STYLE TABS
+        // ══════════════════════════════════════════════════════════════════════
+
+        // ── 1. Button-Stil ────────────────────────────────────────────────────
         $this->start_controls_section('section_button_style', [
-            'label' => __('Button-Stil', 'eventeule'),
+            'label' => __('Button', 'eventeule'),
             'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
         ]);
 
@@ -139,10 +143,7 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
 
         $this->add_group_control(
             \Elementor\Group_Control_Typography::get_type(),
-            [
-                'name'     => 'button_typography',
-                'selector' => '{{WRAPPER}} .ee-reg-popup-trigger',
-            ]
+            ['name' => 'button_typography', 'selector' => '{{WRAPPER}} .ee-reg-popup-trigger']
         );
 
         $this->start_controls_tabs('button_color_tabs');
@@ -181,21 +182,482 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
         $this->end_controls_tabs();
 
         $this->add_control('button_border_radius', [
-            'label'      => __('Eckenradius', 'eventeule'),
-            'type'       => \Elementor\Controls_Manager::SLIDER,
-            'range'      => ['px' => ['min' => 0, 'max' => 60]],
-            'default'    => ['unit' => 'px', 'size' => 8],
-            'selectors'  => ['{{WRAPPER}} .ee-reg-popup-trigger' => 'border-radius: {{SIZE}}{{UNIT}};'],
-            'separator'  => 'before',
+            'label'     => __('Eckenradius', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::SLIDER,
+            'range'     => ['px' => ['min' => 0, 'max' => 60]],
+            'default'   => ['unit' => 'px', 'size' => 8],
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-trigger' => 'border-radius: {{SIZE}}{{UNIT}};'],
+            'separator' => 'before',
         ]);
 
         $this->add_group_control(
             \Elementor\Group_Control_Box_Shadow::get_type(),
-            [
-                'name'     => 'button_box_shadow',
-                'selector' => '{{WRAPPER}} .ee-reg-popup-trigger',
-            ]
+            ['name' => 'button_box_shadow', 'selector' => '{{WRAPPER}} .ee-reg-popup-trigger']
         );
+
+        $this->end_controls_section();
+
+        // ── 2. Popup-Fenster ──────────────────────────────────────────────────
+        $this->start_controls_section('section_popup_style', [
+            'label' => __('Popup-Fenster', 'eventeule'),
+            'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+        ]);
+
+        $this->add_control('popup_bg_color', [
+            'label'     => __('Hintergrundfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#ffffff',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-dialog' => 'background-color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('popup_border_radius', [
+            'label'     => __('Eckenradius', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::SLIDER,
+            'range'     => ['px' => ['min' => 0, 'max' => 40]],
+            'default'   => ['unit' => 'px', 'size' => 16],
+            'selectors' => [
+                '{{WRAPPER}} .ee-reg-popup-dialog'  => 'border-radius: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .ee-reg-popup-header'  => 'border-radius: {{SIZE}}{{UNIT}} {{SIZE}}{{UNIT}} 0 0;',
+            ],
+        ]);
+
+        $this->add_control('popup_max_width', [
+            'label'     => __('Max. Breite', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::SLIDER,
+            'range'     => ['px' => ['min' => 300, 'max' => 900]],
+            'default'   => ['unit' => 'px', 'size' => 560],
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-dialog' => 'max-width: {{SIZE}}{{UNIT}};'],
+        ]);
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Box_Shadow::get_type(),
+            ['name' => 'popup_box_shadow', 'selector' => '{{WRAPPER}} .ee-reg-popup-dialog']
+        );
+
+        $this->add_control('overlay_bg_color', [
+            'label'     => __('Overlay-Farbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => 'rgba(0,0,0,0.55)',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-overlay.is-open:not(.ee-reg-popup-overlay--editor)' => 'background-color: {{VALUE}};'],
+            'separator' => 'before',
+        ]);
+
+        $this->end_controls_section();
+
+        // ── 3. Popup-Header ───────────────────────────────────────────────────
+        $this->start_controls_section('section_header_style', [
+            'label' => __('Popup-Header', 'eventeule'),
+            'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+        ]);
+
+        $this->add_control('header_bg_color', [
+            'label'     => __('Hintergrund', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#ffffff',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-header' => 'background-color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('header_border_color', [
+            'label'     => __('Trennlinienfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#f0f0f0',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-header' => 'border-bottom-color: {{VALUE}};'],
+        ]);
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            ['name' => 'title_typography', 'selector' => '{{WRAPPER}} .ee-reg-popup-title']
+        );
+
+        $this->add_control('title_color', [
+            'label'     => __('Titelfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#1f2937',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-title' => 'color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('title_icon_color', [
+            'label'     => __('Icon-Farbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#6366f1',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-title .dashicons' => 'color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('header_padding', [
+            'label'      => __('Innenabstand', 'eventeule'),
+            'type'       => \Elementor\Controls_Manager::DIMENSIONS,
+            'size_units' => ['px'],
+            'default'    => ['top' => '20', 'right' => '24', 'bottom' => '16', 'left' => '24', 'unit' => 'px', 'isLinked' => false],
+            'selectors'  => ['{{WRAPPER}} .ee-reg-popup-header' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};'],
+            'separator'  => 'before',
+        ]);
+
+        // Close button
+        $this->add_control('close_btn_heading', [
+            'label'     => __('Schließen-Button', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
+
+        $this->add_control('close_btn_bg', [
+            'label'     => __('Hintergrund', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#f9fafb',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-close' => 'background-color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('close_btn_color', [
+            'label'     => __('Iconfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#6b7280',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-close' => 'color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('close_btn_border_color', [
+            'label'     => __('Rahmenfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#e5e7eb',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-close' => 'border-color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('close_btn_border_radius', [
+            'label'     => __('Eckenradius', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::SLIDER,
+            'range'     => ['px' => ['min' => 0, 'max' => 50]],
+            'default'   => ['unit' => 'px', 'size' => 8],
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-close' => 'border-radius: {{SIZE}}{{UNIT}};'],
+        ]);
+
+        $this->end_controls_section();
+
+        // ── 4. Event-Info-Leiste ──────────────────────────────────────────────
+        $this->start_controls_section('section_eventmeta_style', [
+            'label' => __('Event-Info-Leiste', 'eventeule'),
+            'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+        ]);
+
+        $this->add_control('meta_bg_color', [
+            'label'     => __('Hintergrund', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#f9fafb',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-event-meta' => 'background-color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('meta_border_color', [
+            'label'     => __('Trennlinienfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#f0f0f0',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-event-meta' => 'border-bottom-color: {{VALUE}};'],
+        ]);
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            ['name' => 'meta_typography', 'selector' => '{{WRAPPER}} .ee-reg-popup-event-meta']
+        );
+
+        $this->add_control('meta_name_color', [
+            'label'     => __('Event-Titelfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#1f2937',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-event-name' => 'color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('meta_text_color', [
+            'label'     => __('Meta-Textfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#4b5563',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-event-meta' => 'color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('meta_icon_color', [
+            'label'     => __('Icon-Farbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#6366f1',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-event-meta svg' => 'color: {{VALUE}};'],
+        ]);
+
+        $this->end_controls_section();
+
+        // ── 5. Kapazitätsleiste ───────────────────────────────────────────────
+        $this->start_controls_section('section_capacity_style', [
+            'label' => __('Kapazitätsleiste', 'eventeule'),
+            'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+        ]);
+
+        $this->add_control('cap_bg_color', [
+            'label'     => __('Hintergrund', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#e0f2fe',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-capacity' => 'background-color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('cap_text_color', [
+            'label'     => __('Textfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#0369a1',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-capacity' => 'color: {{VALUE}};'],
+        ]);
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            ['name' => 'cap_typography', 'selector' => '{{WRAPPER}} .ee-reg-popup-capacity']
+        );
+
+        $this->end_controls_section();
+
+        // ── 6. Formular-Felder ────────────────────────────────────────────────
+        $this->start_controls_section('section_form_style', [
+            'label' => __('Formular-Felder', 'eventeule'),
+            'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+        ]);
+
+        $this->add_control('form_body_bg', [
+            'label'     => __('Body-Hintergrund', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#ffffff',
+            'selectors' => ['{{WRAPPER}} .ee-reg-popup-body' => 'background-color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('form_body_padding', [
+            'label'      => __('Body-Innenabstand', 'eventeule'),
+            'type'       => \Elementor\Controls_Manager::DIMENSIONS,
+            'size_units' => ['px'],
+            'default'    => ['top' => '20', 'right' => '24', 'bottom' => '28', 'left' => '24', 'unit' => 'px', 'isLinked' => false],
+            'selectors'  => ['{{WRAPPER}} .ee-reg-popup-body' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};'],
+        ]);
+
+        $this->add_control('label_heading', [
+            'label'     => __('Beschriftungen', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            ['name' => 'label_typography', 'selector' => '{{WRAPPER}} .eventeule-registration__field label']
+        );
+
+        $this->add_control('label_color', [
+            'label'     => __('Beschriftungsfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#374151',
+            'selectors' => ['{{WRAPPER}} .eventeule-registration__field label' => 'color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('required_color', [
+            'label'     => __('Pflichtfeld-Sternfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#dc3545',
+            'selectors' => ['{{WRAPPER}} .eventeule-registration__required' => 'color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('input_heading', [
+            'label'     => __('Eingabefelder', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            ['name' => 'input_typography', 'selector' => '{{WRAPPER}} .eventeule-registration__field input, {{WRAPPER}} .eventeule-registration__field textarea, {{WRAPPER}} .eventeule-registration__field select']
+        );
+
+        $this->add_control('input_bg_color', [
+            'label'     => __('Hintergrund', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#ffffff',
+            'selectors' => [
+                '{{WRAPPER}} .eventeule-registration__field input'    => 'background-color: {{VALUE}};',
+                '{{WRAPPER}} .eventeule-registration__field textarea' => 'background-color: {{VALUE}};',
+            ],
+        ]);
+
+        $this->add_control('input_text_color', [
+            'label'     => __('Textfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .eventeule-registration__field input'    => 'color: {{VALUE}};',
+                '{{WRAPPER}} .eventeule-registration__field textarea' => 'color: {{VALUE}};',
+            ],
+        ]);
+
+        $this->add_control('input_border_color', [
+            'label'     => __('Rahmenfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#d1d5db',
+            'selectors' => [
+                '{{WRAPPER}} .eventeule-registration__field input'    => 'border-color: {{VALUE}};',
+                '{{WRAPPER}} .eventeule-registration__field textarea' => 'border-color: {{VALUE}};',
+            ],
+        ]);
+
+        $this->add_control('input_focus_border_color', [
+            'label'     => __('Rahmen bei Fokus', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#6366f1',
+            'selectors' => [
+                '{{WRAPPER}} .eventeule-registration__field input:focus'    => 'border-color: {{VALUE}};',
+                '{{WRAPPER}} .eventeule-registration__field textarea:focus' => 'border-color: {{VALUE}};',
+            ],
+        ]);
+
+        $this->add_control('input_border_radius', [
+            'label'     => __('Eckenradius', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::SLIDER,
+            'range'     => ['px' => ['min' => 0, 'max' => 24]],
+            'default'   => ['unit' => 'px', 'size' => 6],
+            'selectors' => [
+                '{{WRAPPER}} .eventeule-registration__field input'    => 'border-radius: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .eventeule-registration__field textarea' => 'border-radius: {{SIZE}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_control('input_padding', [
+            'label'      => __('Innenabstand', 'eventeule'),
+            'type'       => \Elementor\Controls_Manager::DIMENSIONS,
+            'size_units' => ['px', 'em'],
+            'default'    => ['top' => '8', 'right' => '12', 'bottom' => '8', 'left' => '12', 'unit' => 'px', 'isLinked' => false],
+            'selectors'  => [
+                '{{WRAPPER}} .eventeule-registration__field input'    => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                '{{WRAPPER}} .eventeule-registration__field textarea' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->end_controls_section();
+
+        // ── 7. Absende-Button ─────────────────────────────────────────────────
+        $this->start_controls_section('section_submit_style', [
+            'label' => __('Absende-Button', 'eventeule'),
+            'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+        ]);
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            ['name' => 'submit_typography', 'selector' => '{{WRAPPER}} .eventeule-registration__submit']
+        );
+
+        $this->start_controls_tabs('submit_color_tabs');
+
+        $this->start_controls_tab('submit_tab_normal', ['label' => __('Normal', 'eventeule')]);
+        $this->add_control('submit_bg_color', [
+            'label'     => __('Hintergrund', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#6366f1',
+            'selectors' => ['{{WRAPPER}} .eventeule-registration__submit' => 'background-color: {{VALUE}};'],
+        ]);
+        $this->add_control('submit_text_color', [
+            'label'     => __('Textfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#ffffff',
+            'selectors' => ['{{WRAPPER}} .eventeule-registration__submit' => 'color: {{VALUE}};'],
+        ]);
+        $this->end_controls_tab();
+
+        $this->start_controls_tab('submit_tab_hover', ['label' => __('Hover', 'eventeule')]);
+        $this->add_control('submit_bg_color_hover', [
+            'label'     => __('Hintergrund', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#4f46e5',
+            'selectors' => ['{{WRAPPER}} .eventeule-registration__submit:hover' => 'background-color: {{VALUE}};'],
+        ]);
+        $this->add_control('submit_text_color_hover', [
+            'label'     => __('Textfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#ffffff',
+            'selectors' => ['{{WRAPPER}} .eventeule-registration__submit:hover' => 'color: {{VALUE}};'],
+        ]);
+        $this->end_controls_tab();
+
+        $this->end_controls_tabs();
+
+        $this->add_control('submit_border_radius', [
+            'label'     => __('Eckenradius', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::SLIDER,
+            'range'     => ['px' => ['min' => 0, 'max' => 60]],
+            'default'   => ['unit' => 'px', 'size' => 8],
+            'selectors' => ['{{WRAPPER}} .eventeule-registration__submit' => 'border-radius: {{SIZE}}{{UNIT}};'],
+            'separator' => 'before',
+        ]);
+
+        $this->add_control('submit_padding', [
+            'label'      => __('Innenabstand', 'eventeule'),
+            'type'       => \Elementor\Controls_Manager::DIMENSIONS,
+            'size_units' => ['px', 'em'],
+            'default'    => ['top' => '10', 'right' => '24', 'bottom' => '10', 'left' => '24', 'unit' => 'px', 'isLinked' => false],
+            'selectors'  => ['{{WRAPPER}} .eventeule-registration__submit' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};'],
+        ]);
+
+        $this->add_control('submit_full_width', [
+            'label'        => __('Volle Breite', 'eventeule'),
+            'type'         => \Elementor\Controls_Manager::SWITCHER,
+            'label_on'     => __('Ja', 'eventeule'),
+            'label_off'    => __('Nein', 'eventeule'),
+            'return_value' => 'yes',
+            'default'      => 'no',
+            'selectors'    => [
+                '{{WRAPPER}} .eventeule-registration__submit' => 'width: 100%;',
+            ],
+        ]);
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Box_Shadow::get_type(),
+            ['name' => 'submit_box_shadow', 'selector' => '{{WRAPPER}} .eventeule-registration__submit']
+        );
+
+        $this->end_controls_section();
+
+        // ── 8. Erfolgs-/Fehlermeldungen ───────────────────────────────────────
+        $this->start_controls_section('section_messages_style', [
+            'label' => __('Meldungen', 'eventeule'),
+            'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+        ]);
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            ['name' => 'msg_typography', 'selector' => '{{WRAPPER}} .eventeule-registration__message']
+        );
+
+        $this->add_control('msg_success_bg', [
+            'label'     => __('Erfolg: Hintergrund', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#d4edda',
+            'selectors' => ['{{WRAPPER}} .eventeule-registration__message--success' => 'background-color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('msg_success_color', [
+            'label'     => __('Erfolg: Textfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#155724',
+            'selectors' => ['{{WRAPPER}} .eventeule-registration__message--success' => 'color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('msg_success_border', [
+            'label'     => __('Erfolg: Linienfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#28a745',
+            'selectors' => ['{{WRAPPER}} .eventeule-registration__message--success' => 'border-left-color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('msg_error_bg', [
+            'label'     => __('Fehler: Hintergrund', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#f8d7da',
+            'selectors' => ['{{WRAPPER}} .eventeule-registration__message--error' => 'background-color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('msg_error_color', [
+            'label'     => __('Fehler: Textfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#721c24',
+            'selectors' => ['{{WRAPPER}} .eventeule-registration__message--error' => 'color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('msg_error_border', [
+            'label'     => __('Fehler: Linienfarbe', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#dc3545',
+            'selectors' => ['{{WRAPPER}} .eventeule-registration__message--error' => 'border-left-color: {{VALUE}};'],
+        ]);
 
         $this->end_controls_section();
     }

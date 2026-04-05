@@ -388,7 +388,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.6rem 1.4rem;
-    background: #0073aa;
+    background: #6366f1;
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -399,7 +399,7 @@
 }
 
 .eventeule-registration__submit:hover {
-    background: #005177;
+    background: #4f46e5;
 }
 
 .eventeule-registration__submit:disabled {
