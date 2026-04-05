@@ -578,6 +578,16 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
 
         $this->end_controls_tabs();
 
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name'      => 'submit_border',
+                'label'     => __('Rahmen', 'eventeule'),
+                'selector'  => '{{WRAPPER}} .eventeule-registration__submit',
+                'separator' => 'before',
+            ]
+        );
+
         $this->add_control('submit_border_radius', [
             'label'     => __('Eckenradius', 'eventeule'),
             'type'      => \Elementor\Controls_Manager::SLIDER,
