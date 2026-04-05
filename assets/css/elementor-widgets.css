@@ -429,6 +429,13 @@
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
+.eventeule-event-excerpt {
+    margin: 0;
+    font-size: 14px;
+    color: #6b7280;
+    line-height: 1.6;
+}
+
 .eventeule-no-events {
     text-align: center;
     padding: 40px 20px;

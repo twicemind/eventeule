@@ -296,6 +296,30 @@ class EventListCardWidget extends Widget_Base
             ]
         );
 
+        $this->add_control(
+            'show_excerpt',
+            [
+                'label' => __('Auszug anzeigen', 'eventeule'),
+                'type' => Controls_Manager::SWITCHER,
+                'default' => 'no',
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'excerpt_words',
+            [
+                'label' => __('Auszug Wörteranzahl', 'eventeule'),
+                'type' => Controls_Manager::NUMBER,
+                'default' => 20,
+                'min' => 5,
+                'max' => 100,
+                'condition' => [
+                    'show_excerpt' => 'yes',
+                ],
+            ]
+        );
+
         $this->end_controls_section();
 
         // Responsive Visibility Section
@@ -515,6 +539,75 @@ class EventListCardWidget extends Widget_Base
                 'size_units' => ['px', '%'],
                 'selectors' => [
                     '{{WRAPPER}} .eventeule-event-card' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'heading_card_hover',
+            [
+                'label' => __('Hover', 'eventeule'),
+                'type' => Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'card_hover_background',
+            [
+                'label' => __('Hintergrundfarbe', 'eventeule'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-event-card:hover' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'card_hover_border_color',
+            [
+                'label' => __('Rahmenfarbe', 'eventeule'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-event-card:hover' => 'border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Style: Content area
+        $this->start_controls_section(
+            'content_style_section',
+            [
+                'label' => __('Inhaltsbereich', 'eventeule'),
+                'tab' => Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_responsive_control(
+            'content_padding',
+            [
+                'label' => __('Innenabstand', 'eventeule'),
+                'type' => Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em'],
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-event-card-content' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'content_gap',
+            [
+                'label' => __('Zeilenabstand', 'eventeule'),
+                'type' => Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => [
+                    'px' => ['min' => 0, 'max' => 48],
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-event-card-content' => 'gap: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
@@ -776,6 +869,104 @@ class EventListCardWidget extends Widget_Base
             ]
         );
 
+        $this->add_control(
+            'heading_meta_icon_colors',
+            [
+                'label' => __('Icon-Farben', 'eventeule'),
+                'type' => Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'meta_location_color',
+            [
+                'label' => __('Ort', 'eventeule'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-meta-location' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'meta_date_color',
+            [
+                'label' => __('Datum', 'eventeule'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-meta-date' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'meta_time_color',
+            [
+                'label' => __('Uhrzeit', 'eventeule'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-meta-time' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'meta_price_color',
+            [
+                'label' => __('Preis', 'eventeule'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-meta-price' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Style: Excerpt
+        $this->start_controls_section(
+            'excerpt_style_section',
+            [
+                'label' => __('Auszug', 'eventeule'),
+                'tab' => Controls_Manager::TAB_STYLE,
+                'condition' => [
+                    'show_excerpt' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name' => 'excerpt_typography',
+                'selector' => '{{WRAPPER}} .eventeule-event-excerpt',
+            ]
+        );
+
+        $this->add_control(
+            'excerpt_color',
+            [
+                'label' => __('Textfarbe', 'eventeule'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-event-excerpt' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'excerpt_margin',
+            [
+                'label' => __('Abstand', 'eventeule'),
+                'type' => Controls_Manager::DIMENSIONS,
+                'size_units' => ['px'],
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-event-excerpt' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
         $this->end_controls_section();
 
         // Style: Button
@@ -893,6 +1084,37 @@ class EventListCardWidget extends Widget_Base
                 'size_units' => ['px'],
                 'selectors' => [
                     '{{WRAPPER}} .eventeule-event-card-button' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'button_align',
+            [
+                'label' => __('Ausrichtung', 'eventeule'),
+                'type' => Controls_Manager::CHOOSE,
+                'options' => [
+                    'flex-start' => [
+                        'title' => __('Links', 'eventeule'),
+                        'icon' => 'eicon-text-align-left',
+                    ],
+                    'center' => [
+                        'title' => __('Mitte', 'eventeule'),
+                        'icon' => 'eicon-text-align-center',
+                    ],
+                    'flex-end' => [
+                        'title' => __('Rechts', 'eventeule'),
+                        'icon' => 'eicon-text-align-right',
+                    ],
+                    'stretch' => [
+                        'title' => __('Volle Breite', 'eventeule'),
+                        'icon' => 'eicon-text-align-justify',
+                    ],
+                ],
+                'separator' => 'before',
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-event-card-footer' => 'display: flex; justify-content: {{VALUE}};',
+                    '{{WRAPPER}} .eventeule-event-card-button' => '{{VALUE == "stretch" ? "width: 100%; text-align: center;" : ""}}',
                 ],
             ]
         );
@@ -1076,6 +1298,19 @@ class EventListCardWidget extends Widget_Base
                 echo '</div>';
             }
 
+            // Excerpt
+            if ($settings['show_excerpt'] === 'yes') {
+                $words = (int) ($settings['excerpt_words'] ?? 20);
+                $excerpt = wp_trim_words(
+                    wp_strip_all_tags(get_the_excerpt() ?: get_the_content()),
+                    $words,
+                    ' …'
+                );
+                if ($excerpt) {
+                    echo '<p class="eventeule-event-excerpt">' . esc_html($excerpt) . '</p>';
+                }
+            }
+
             // Button (inside content so it sits as last column-item)
             if ($settings['show_button'] === 'yes') {
                 $button_url = get_permalink();
@@ -1149,13 +1384,17 @@ class EventListCardWidget extends Widget_Base
                                 </span>
                             <# } #>
                         </div>
+
+                        <# if (settings.show_excerpt === 'yes') { #>
+                            <p class="eventeule-event-excerpt">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua …</p>
+                        <# } #>
+
+                        <# if (settings.show_button === 'yes') { #>
+                            <div class="eventeule-event-card-footer">
+                                <a href="#" class="eventeule-event-card-button">{{ settings.button_text }}</a>
+                            </div>
+                        <# } #>
                     </div>
-                    
-                    <# if (settings.show_button === 'yes') { #>
-                        <div class="eventeule-event-card-footer">
-                            <a href="#" class="eventeule-event-card-button">{{ settings.button_text }}</a>
-                        </div>
-                    <# } #>
                 </div>
             <# } #>
         </div>
