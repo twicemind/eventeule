@@ -117,33 +117,6 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
             'default'      => 'yes',
         ]);
 
-        $this->add_control('reg_window_heading', [
-            'label'     => __('Anmeldezeitraum', 'eventeule'),
-            'type'      => \Elementor\Controls_Manager::HEADING,
-            'separator' => 'before',
-        ]);
-
-        $this->add_control('reg_open_from', [
-            'label'       => __('Anmeldung ab', 'eventeule'),
-            'description' => __('Datum und Uhrzeit ab dem die Anmeldung freigeschaltet ist. Leer = sofort möglich.', 'eventeule'),
-            'type'        => \Elementor\Controls_Manager::DATE_TIME,
-            'default'     => '',
-        ]);
-
-        $this->add_control('reg_open_until', [
-            'label'       => __('Anmeldung bis', 'eventeule'),
-            'description' => __('Datum und Uhrzeit bis zu dem die Anmeldung möglich ist. Leer = kein Ablaufdatum.', 'eventeule'),
-            'type'        => \Elementor\Controls_Manager::DATE_TIME,
-            'default'     => '',
-        ]);
-
-        $this->add_control('reg_closed_text', [
-            'label'       => __('Text wenn Anmeldung geschlossen', 'eventeule'),
-            'description' => __('Wird statt des Buttons angezeigt, wenn der Anmeldezeitraum nicht aktiv ist.', 'eventeule'),
-            'type'        => \Elementor\Controls_Manager::TEXT,
-            'default'     => __('Anmeldung derzeit nicht möglich.', 'eventeule'),
-        ]);
-
         $this->end_controls_section();
 
         // ══════════════════════════════════════════════════════════════════════
@@ -785,9 +758,12 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
         $overlay_extra   = $is_edit ? ' is-open ee-reg-popup-overlay--editor' : '';
 
         // ── Registration window check ────────────────────────────────────
-        $reg_closed_text = $settings['reg_closed_text'] ?? __('Anmeldung derzeit nicht möglich.', 'eventeule');
-        $reg_open_from   = trim($settings['reg_open_from']  ?? '');
-        $reg_open_until  = trim($settings['reg_open_until'] ?? '');
+        $reg_closed_text = (string) get_post_meta($event_id, '_eventeule_reg_closed_text', true);
+        if ($reg_closed_text === '') {
+            $reg_closed_text = __('Anmeldung derzeit nicht möglich.', 'eventeule');
+        }
+        $reg_open_from   = trim((string) get_post_meta($event_id, '_eventeule_reg_open_from', true));
+        $reg_open_until  = trim((string) get_post_meta($event_id, '_eventeule_reg_open_until', true));
         $now_local       = current_time('Y-m-d H:i');
         $reg_window_open = true;
 

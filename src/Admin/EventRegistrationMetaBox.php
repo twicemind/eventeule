@@ -51,8 +51,11 @@ class EventRegistrationMetaBox
         $enabled      = get_post_meta($post->ID, '_eventeule_reg_enabled', true) === '1';
         $maxReg       = (int) get_post_meta($post->ID, '_eventeule_reg_max', true);
         $thankyou     = (string) get_post_meta($post->ID, '_eventeule_reg_thankyou', true);
-        $adminEmail   = (string) get_post_meta($post->ID, '_eventeule_reg_admin_email', true);
-        $fieldsRaw    = (string) get_post_meta($post->ID, '_eventeule_reg_fields', true);
+        $adminEmail     = (string) get_post_meta($post->ID, '_eventeule_reg_admin_email', true);
+        $regOpenFrom    = (string) get_post_meta($post->ID, '_eventeule_reg_open_from', true);
+        $regOpenUntil   = (string) get_post_meta($post->ID, '_eventeule_reg_open_until', true);
+        $regClosedText  = (string) get_post_meta($post->ID, '_eventeule_reg_closed_text', true);
+        $fieldsRaw      = (string) get_post_meta($post->ID, '_eventeule_reg_fields', true);
         $requiredRaw  = (string) get_post_meta($post->ID, '_eventeule_reg_required', true);
 
         // Defaults
@@ -137,6 +140,38 @@ class EventRegistrationMetaBox
                                        class="regular-text"
                                        placeholder="<?php echo esc_attr(get_option('admin_email')); ?>" />
                                 <p class="description"><?php esc_html_e('Email address to notify on new registrations. Defaults to admin email.', 'eventeule'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="eventeule_reg_open_from"><?php esc_html_e('Registration open from', 'eventeule'); ?></label>
+                            </th>
+                            <td>
+                                <input type="datetime-local" id="eventeule_reg_open_from" name="eventeule_reg_open_from"
+                                       value="<?php echo esc_attr($regOpenFrom); ?>" />
+                                <p class="description"><?php esc_html_e('Date and time from which registration opens. Leave empty for no restriction.', 'eventeule'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="eventeule_reg_open_until"><?php esc_html_e('Registration open until', 'eventeule'); ?></label>
+                            </th>
+                            <td>
+                                <input type="datetime-local" id="eventeule_reg_open_until" name="eventeule_reg_open_until"
+                                       value="<?php echo esc_attr($regOpenUntil); ?>" />
+                                <p class="description"><?php esc_html_e('Date and time until which registration is possible. Leave empty for no end date.', 'eventeule'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="eventeule_reg_closed_text"><?php esc_html_e('Text when registration is closed', 'eventeule'); ?></label>
+                            </th>
+                            <td>
+                                <input type="text" id="eventeule_reg_closed_text" name="eventeule_reg_closed_text"
+                                       value="<?php echo esc_attr($regClosedText); ?>"
+                                       class="regular-text"
+                                       placeholder="<?php esc_attr_e('Registration currently not available.', 'eventeule'); ?>" />
+                                <p class="description"><?php esc_html_e('Shown instead of the button when outside the registration window.', 'eventeule'); ?></p>
                             </td>
                         </tr>
                         <tr>
@@ -236,6 +271,22 @@ class EventRegistrationMetaBox
             ? sanitize_email(wp_unslash($_POST['eventeule_reg_admin_email']))
             : '';
         update_post_meta($postId, '_eventeule_reg_admin_email', $adminEmail);
+
+        // Registration window
+        $regOpenFrom = isset($_POST['eventeule_reg_open_from'])
+            ? sanitize_text_field(wp_unslash($_POST['eventeule_reg_open_from']))
+            : '';
+        update_post_meta($postId, '_eventeule_reg_open_from', $regOpenFrom);
+
+        $regOpenUntil = isset($_POST['eventeule_reg_open_until'])
+            ? sanitize_text_field(wp_unslash($_POST['eventeule_reg_open_until']))
+            : '';
+        update_post_meta($postId, '_eventeule_reg_open_until', $regOpenUntil);
+
+        $regClosedText = isset($_POST['eventeule_reg_closed_text'])
+            ? sanitize_text_field(wp_unslash($_POST['eventeule_reg_closed_text']))
+            : '';
+        update_post_meta($postId, '_eventeule_reg_closed_text', $regClosedText);
 
         // Shown fields
         $allowedFieldKeys = array_keys(self::ALL_FIELDS);

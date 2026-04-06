@@ -34,6 +34,17 @@ class RegistrationController
             wp_send_json_error(['message' => __('Registration is not available for this event.', 'eventeule')]);
         }
 
+        // Check registration window
+        $regOpenFrom  = trim((string) get_post_meta($eventId, '_eventeule_reg_open_from', true));
+        $regOpenUntil = trim((string) get_post_meta($eventId, '_eventeule_reg_open_until', true));
+        $nowLocal     = current_time('Y-m-d H:i');
+        if ($regOpenFrom !== '' && $nowLocal < date('Y-m-d H:i', strtotime($regOpenFrom))) {
+            wp_send_json_error(['message' => __('Registration is not open yet.', 'eventeule')]);
+        }
+        if ($regOpenUntil !== '' && $nowLocal > date('Y-m-d H:i', strtotime($regOpenUntil))) {
+            wp_send_json_error(['message' => __('Registration has already closed.', 'eventeule')]);
+        }
+
         $enabledFields  = $this->parse_fields('_eventeule_reg_fields', $eventId, ['firstname', 'email']);
         $requiredFields = $this->parse_fields('_eventeule_reg_required', $eventId, ['firstname', 'email']);
 
