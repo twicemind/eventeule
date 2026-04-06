@@ -99,12 +99,27 @@ class EventListCardWidget extends Widget_Base
         }
 
         $this->add_control(
+            'category_source',
+            [
+                'label'   => __('Kategorie-Quelle', 'eventeule'),
+                'type'    => Controls_Manager::SELECT,
+                'default' => 'manual',
+                'options' => [
+                    'manual' => __('Manuell auswählen', 'eventeule'),
+                    'auto'   => __('Automatisch (Archiv-Kontext)', 'eventeule'),
+                ],
+                'description' => __('"Automatisch" liest die aktuelle Kategorie aus dem Archiv-Template und filtert entsprechend.', 'eventeule'),
+            ]
+        );
+
+        $this->add_control(
             'event_category',
             [
-                'label' => __('Filter by Category', 'eventeule'),
-                'type' => Controls_Manager::SELECT,
-                'default' => '',
-                'options' => $category_options,
+                'label'     => __('Filter by Category', 'eventeule'),
+                'type'      => Controls_Manager::SELECT,
+                'default'   => '',
+                'options'   => $category_options,
+                'condition' => ['category_source' => 'manual'],
             ]
         );
 
@@ -1395,13 +1410,27 @@ class EventListCardWidget extends Widget_Base
             $args['meta_type'] = 'DATE';
         }
 
-        // Category filter
-        if (!empty($settings['event_category'])) {
+        // Category filter — manual setting or automatic archive context
+        $category_source = $settings['category_source'] ?? 'manual';
+
+        if ($category_source === 'auto') {
+            // Resolve from current archive query (taxonomy term archive page)
+            $queried_object = get_queried_object();
+            if ($queried_object instanceof \WP_Term && $queried_object->taxonomy === EventCategoryTaxonomy::TAXONOMY) {
+                $args['tax_query'] = [
+                    [
+                        'taxonomy' => EventCategoryTaxonomy::TAXONOMY,
+                        'field'    => 'term_id',
+                        'terms'    => $queried_object->term_id,
+                    ],
+                ];
+            }
+        } elseif (!empty($settings['event_category'])) {
             $args['tax_query'] = [
                 [
                     'taxonomy' => EventCategoryTaxonomy::TAXONOMY,
-                    'field' => 'term_id',
-                    'terms' => $settings['event_category'],
+                    'field'    => 'term_id',
+                    'terms'    => $settings['event_category'],
                 ],
             ];
         }
