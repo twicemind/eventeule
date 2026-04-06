@@ -55,6 +55,8 @@ class EventRegistrationMetaBox
         $regOpenFrom    = (string) get_post_meta($post->ID, '_eventeule_reg_open_from', true);
         $regOpenUntil   = (string) get_post_meta($post->ID, '_eventeule_reg_open_until', true);
         $regClosedText  = (string) get_post_meta($post->ID, '_eventeule_reg_closed_text', true);
+        $extUrl         = (string) get_post_meta($post->ID, '_eventeule_reg_ext_url', true);
+        $extCount       = (int)    get_post_meta($post->ID, '_eventeule_reg_ext_count', true);
         $fieldsRaw      = (string) get_post_meta($post->ID, '_eventeule_reg_fields', true);
         $requiredRaw  = (string) get_post_meta($post->ID, '_eventeule_reg_required', true);
 
@@ -175,6 +177,34 @@ class EventRegistrationMetaBox
                             </td>
                         </tr>
                         <tr>
+                            <th scope="row" colspan="2" style="padding-top:16px;">
+                                <strong><?php esc_html_e('External registration (e.g. Microsoft Forms)', 'eventeule'); ?></strong>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="eventeule_reg_ext_url"><?php esc_html_e('External registration URL', 'eventeule'); ?></label>
+                            </th>
+                            <td>
+                                <input type="url" id="eventeule_reg_ext_url" name="eventeule_reg_ext_url"
+                                       value="<?php echo esc_attr($extUrl); ?>"
+                                       class="large-text"
+                                       placeholder="https://forms.office.com/…" />
+                                <p class="description"><?php esc_html_e('If set, the registration button will link here instead of opening the built-in form. The external count below will be added to the internal count.', 'eventeule'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="eventeule_reg_ext_count"><?php esc_html_e('External registrations (booked externally)', 'eventeule'); ?></label>
+                            </th>
+                            <td>
+                                <input type="number" id="eventeule_reg_ext_count" name="eventeule_reg_ext_count"
+                                       value="<?php echo esc_attr($extCount ?: ''); ?>"
+                                       min="0" step="1" style="width: 80px;" />
+                                <p class="description"><?php esc_html_e('Number of spots already booked via the external form. Added to internal registrations for the capacity display.', 'eventeule'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
                             <th scope="row"><?php esc_html_e('Registration fields', 'eventeule'); ?></th>
                             <td>
                                 <table class="eventeule-reg-fields-table">
@@ -287,6 +317,15 @@ class EventRegistrationMetaBox
             ? sanitize_text_field(wp_unslash($_POST['eventeule_reg_closed_text']))
             : '';
         update_post_meta($postId, '_eventeule_reg_closed_text', $regClosedText);
+
+        // External registration
+        $extUrl = isset($_POST['eventeule_reg_ext_url'])
+            ? esc_url_raw(wp_unslash($_POST['eventeule_reg_ext_url']))
+            : '';
+        update_post_meta($postId, '_eventeule_reg_ext_url', $extUrl);
+
+        $extCount = isset($_POST['eventeule_reg_ext_count']) ? max(0, (int) $_POST['eventeule_reg_ext_count']) : 0;
+        update_post_meta($postId, '_eventeule_reg_ext_count', $extCount);
 
         // Shown fields
         $allowedFieldKeys = array_keys(self::ALL_FIELDS);

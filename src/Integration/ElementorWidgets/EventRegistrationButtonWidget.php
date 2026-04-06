@@ -732,10 +732,13 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
         $enabled_fields  = $this->parse_reg_fields('_eventeule_reg_fields',   $event_id, ['firstname', 'email']);
         $required_fields = $this->parse_reg_fields('_eventeule_reg_required',  $event_id, ['firstname', 'email']);
         $max_reg         = (int) get_post_meta($event_id, '_eventeule_reg_max', true);
+        $ext_url         = trim((string) get_post_meta($event_id, '_eventeule_reg_ext_url', true));
+        $ext_count       = (int) get_post_meta($event_id, '_eventeule_reg_ext_count', true);
 
         $repo      = new RegistrationRepository();
         $current   = $max_reg > 0 ? $repo->count_by_event($event_id) : 0;
-        $available = $max_reg > 0 ? max(0, $max_reg - $current) : -1; // -1 = unlimited
+        $total_booked = $current + $ext_count;
+        $available = $max_reg > 0 ? max(0, $max_reg - $total_booked) : -1; // -1 = unlimited
 
         $nonce       = wp_create_nonce('eventeule_register');
         $ajax_url    = admin_url('admin-ajax.php');
@@ -806,6 +809,21 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
             <div class="ee-reg-popup-trigger-wrap">
                 <?php if (!$reg_window_open): ?>
                     <span class="ee-reg-popup-closed"><?php echo esc_html($reg_closed_text); ?></span>
+                <?php elseif ($ext_url !== ''): ?>
+                    <?php /* External registration link — no popup */ ?>
+                    <a
+                        href="<?php echo esc_url($ext_url); ?>"
+                        class="ee-reg-popup-trigger ee-reg-popup-trigger--<?php echo $btn_type; ?> ee-reg-popup-trigger--<?php echo $btn_size; ?>"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        <?php echo $available === 0 ? 'aria-disabled="true" tabindex="-1" style="pointer-events:none;opacity:.5;"' : ''; ?>
+                    >
+                        <?php if ($available === 0): ?>
+                            <?php esc_html_e('Ausgebucht', 'eventeule'); ?>
+                        <?php else: ?>
+                            <?php echo esc_html($btn_text); ?>
+                        <?php endif; ?>
+                    </a>
                 <?php else: ?>
                 <button
                     type="button"
@@ -820,6 +838,7 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
                         <?php echo esc_html($btn_text); ?>
                     <?php endif; ?>
                 </button>
+                <?php endif; // ext_url / reg_window_open ?>
 
                 <?php if ($show_capacity_info && $max_reg > 0 && $available > 0): ?>
                     <span class="ee-reg-popup-spots">
@@ -835,7 +854,6 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
                         <?php esc_html_e('Ausgebucht', 'eventeule'); ?>
                     </span>
                 <?php endif; ?>
-                <?php endif; // reg_window_open ?>
             </div>
 
             <!-- ── Registration popup ─────────────────────────────────── -->

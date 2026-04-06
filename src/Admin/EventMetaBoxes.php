@@ -25,6 +25,59 @@ class EventMetaBoxes
             'normal',
             'high'
         );
+
+        add_meta_box(
+            'eventeule_event_qr',
+            __('QR-Code teilen', 'eventeule'),
+            [$this, 'render_qr_meta_box'],
+            EventPostType::POST_TYPE,
+            'side',
+            'default'
+        );
+    }
+
+    public function render_qr_meta_box(\WP_Post $post): void
+    {
+        $permalink = get_permalink($post->ID);
+
+        if (!$permalink || $post->post_status === 'auto-draft') {
+            echo '<p style="color:#888;font-size:12px;">'
+                . esc_html__('QR-Code wird nach dem Speichern/Veröffentlichen angezeigt.', 'eventeule')
+                . '</p>';
+            return;
+        }
+
+        $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?' . http_build_query([
+            'size'   => '180x180',
+            'data'   => $permalink,
+            'qzone'  => 1,
+            'format' => 'png',
+        ]);
+        ?>
+        <div style="text-align:center;padding:4px 0;">
+            <img
+                src="<?php echo esc_url($qr_url); ?>"
+                alt="<?php esc_attr_e('QR-Code', 'eventeule'); ?>"
+                width="180" height="180"
+                style="display:block;margin:0 auto 10px;border:1px solid #e5e7eb;border-radius:6px;"
+            />
+            <a
+                href="<?php echo esc_url($qr_url); ?>"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="button button-small"
+                style="margin-bottom:10px;"
+            >
+                <?php esc_html_e('QR-Code herunterladen', 'eventeule'); ?>
+            </a>
+            <p style="font-size:11px;color:#6b7280;word-break:break-all;margin:6px 0 0;text-align:left;">
+                <strong><?php esc_html_e('URL:', 'eventeule'); ?></strong><br>
+                <a href="<?php echo esc_url($permalink); ?>" style="color:#6366f1;">
+                    <?php echo esc_html($permalink); ?>
+                </a>
+            </p>
+        </div>
+        <?php
     }
 
     public function render_meta_box(\WP_Post $post): void

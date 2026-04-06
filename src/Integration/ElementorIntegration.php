@@ -209,6 +209,7 @@ class ElementorIntegration
         require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventNoteWidget.php';
         require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventCategoryWidget.php';
         require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventRegistrationUrlWidget.php';
+        require_once EVENTEULE_PATH . 'src/Integration/ElementorWidgets/EventQrCodeWidget.php';
 
         // Register widgets
         $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventTitleWidget());
@@ -227,5 +228,6 @@ class ElementorIntegration
         $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventNoteWidget());
         $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventCategoryWidget());
         $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventRegistrationUrlWidget());
+        $widgets_manager->register(new \EventEule\Integration\ElementorWidgets\EventQrCodeWidget());
     }
 }
