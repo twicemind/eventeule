@@ -836,6 +836,12 @@
     color: #dc2626;
     font-weight: 600;
 }
+.ee-reg-popup-closed {
+    display: inline-block;
+    font-size: 0.9rem;
+    color: #6b7280;
+    font-style: italic;
+}
 
 /* ── Editor preview: show popup inline so all controls are live-editable ─── */
 .ee-reg-popup-overlay.ee-reg-popup-overlay--editor {

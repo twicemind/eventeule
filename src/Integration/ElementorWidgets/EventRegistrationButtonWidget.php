@@ -107,6 +107,43 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
             'default'      => 'yes',
         ]);
 
+        $this->add_control('show_capacity_info', [
+            'label'        => __('Platzinfo am Button anzeigen', 'eventeule'),
+            'description'  => __('Zeigt „X von Y Plätzen frei" unterhalb des Buttons an.', 'eventeule'),
+            'type'         => \Elementor\Controls_Manager::SWITCHER,
+            'label_on'     => __('Ja', 'eventeule'),
+            'label_off'    => __('Nein', 'eventeule'),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ]);
+
+        $this->add_control('reg_window_heading', [
+            'label'     => __('Anmeldezeitraum', 'eventeule'),
+            'type'      => \Elementor\Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
+
+        $this->add_control('reg_open_from', [
+            'label'       => __('Anmeldung ab', 'eventeule'),
+            'description' => __('Datum und Uhrzeit ab dem die Anmeldung freigeschaltet ist. Leer = sofort möglich.', 'eventeule'),
+            'type'        => \Elementor\Controls_Manager::DATE_TIME,
+            'default'     => '',
+        ]);
+
+        $this->add_control('reg_open_until', [
+            'label'       => __('Anmeldung bis', 'eventeule'),
+            'description' => __('Datum und Uhrzeit bis zu dem die Anmeldung möglich ist. Leer = kein Ablaufdatum.', 'eventeule'),
+            'type'        => \Elementor\Controls_Manager::DATE_TIME,
+            'default'     => '',
+        ]);
+
+        $this->add_control('reg_closed_text', [
+            'label'       => __('Text wenn Anmeldung geschlossen', 'eventeule'),
+            'description' => __('Wird statt des Buttons angezeigt, wenn der Anmeldezeitraum nicht aktiv ist.', 'eventeule'),
+            'type'        => \Elementor\Controls_Manager::TEXT,
+            'default'     => __('Anmeldung derzeit nicht möglich.', 'eventeule'),
+        ]);
+
         $this->end_controls_section();
 
         // ══════════════════════════════════════════════════════════════════════
@@ -741,10 +778,27 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
         $btn_size        = esc_attr($settings['button_size'] ?? 'md');
         $btn_text        = $settings['button_text'] ?? __('Jetzt anmelden', 'eventeule');
         $popup_title     = $settings['popup_title']  ?? __('Anmeldung', 'eventeule');
-        $show_event_info = ($settings['show_event_info'] ?? 'yes') === 'yes';
+        $show_event_info    = ($settings['show_event_info']    ?? 'yes') === 'yes';
+        $show_capacity_info = ($settings['show_capacity_info'] ?? 'yes') === 'yes';
         $popup_id        = 'ee-reg-popup-' . esc_attr($this->get_id());
         // In editor mode the overlay should be pre-opened so all controls are live-editable
         $overlay_extra   = $is_edit ? ' is-open ee-reg-popup-overlay--editor' : '';
+
+        // ── Registration window check ────────────────────────────────────
+        $reg_closed_text = $settings['reg_closed_text'] ?? __('Anmeldung derzeit nicht möglich.', 'eventeule');
+        $reg_open_from   = trim($settings['reg_open_from']  ?? '');
+        $reg_open_until  = trim($settings['reg_open_until'] ?? '');
+        $now_local       = current_time('Y-m-d H:i');
+        $reg_window_open = true;
+
+        if (!$is_edit) {
+            if ($reg_open_from !== '' && $now_local < date('Y-m-d H:i', strtotime($reg_open_from))) {
+                $reg_window_open = false;
+            }
+            if ($reg_open_until !== '' && $now_local > date('Y-m-d H:i', strtotime($reg_open_until))) {
+                $reg_window_open = false;
+            }
+        }
 
         // Field labels / types
         $field_labels = [
@@ -774,6 +828,9 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
 
             <!-- ── Trigger button ──────────────────────────────────────── -->
             <div class="ee-reg-popup-trigger-wrap">
+                <?php if (!$reg_window_open): ?>
+                    <span class="ee-reg-popup-closed"><?php echo esc_html($reg_closed_text); ?></span>
+                <?php else: ?>
                 <button
                     type="button"
                     class="ee-reg-popup-trigger ee-reg-popup-trigger--<?php echo $btn_type; ?> ee-reg-popup-trigger--<?php echo $btn_size; ?>"
@@ -788,7 +845,7 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
                     <?php endif; ?>
                 </button>
 
-                <?php if ($max_reg > 0 && $available > 0): ?>
+                <?php if ($show_capacity_info && $max_reg > 0 && $available > 0): ?>
                     <span class="ee-reg-popup-spots">
                         <?php printf(
                             /* translators: %1$d = available, %2$d = total */
@@ -797,11 +854,12 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
                             $max_reg
                         ); ?>
                     </span>
-                <?php elseif ($max_reg > 0 && $available === 0): ?>
+                <?php elseif ($show_capacity_info && $max_reg > 0 && $available === 0): ?>
                     <span class="ee-reg-popup-spots ee-reg-popup-spots--full">
                         <?php esc_html_e('Ausgebucht', 'eventeule'); ?>
                     </span>
                 <?php endif; ?>
+                <?php endif; // reg_window_open ?>
             </div>
 
             <!-- ── Registration popup ─────────────────────────────────── -->
