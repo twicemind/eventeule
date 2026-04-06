@@ -125,9 +125,11 @@ class Admin
 
         // edit-tags.php?taxonomy=eventeule_category → nav=kategorien
         // Preserve WP message codes (1=added, 3=deleted, 6=updated) so our flash notice works.
+        // Do NOT redirect when action=edit — let WordPress render its own term-edit form.
         if (isset($_GET['taxonomy']) && $_GET['taxonomy'] === 'eventeule_category'
             && isset($_SERVER['PHP_SELF'])
             && str_contains((string) $_SERVER['PHP_SELF'], 'edit-tags.php')
+            && (empty($_GET['action']) || $_GET['action'] !== 'edit')
         ) {
             $args = ['page' => 'eventeule', 'nav' => 'kategorien'];
             if (!empty($_GET['message'])) {
