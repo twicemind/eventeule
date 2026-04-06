@@ -972,7 +972,7 @@ class EventListCardWidget extends Widget_Base
                 'label' => __('Ort', 'eventeule'),
                 'type' => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .eventeule-meta-location' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .eventeule-meta-location svg' => 'color: {{VALUE}}; fill: {{VALUE}};',
                 ],
             ]
         );
@@ -983,7 +983,7 @@ class EventListCardWidget extends Widget_Base
                 'label' => __('Datum', 'eventeule'),
                 'type' => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .eventeule-meta-date' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .eventeule-meta-date svg' => 'color: {{VALUE}}; fill: {{VALUE}};',
                 ],
             ]
         );
@@ -994,7 +994,7 @@ class EventListCardWidget extends Widget_Base
                 'label' => __('Uhrzeit', 'eventeule'),
                 'type' => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .eventeule-meta-time' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .eventeule-meta-time svg' => 'color: {{VALUE}}; fill: {{VALUE}};',
                 ],
             ]
         );
@@ -1005,7 +1005,60 @@ class EventListCardWidget extends Widget_Base
                 'label' => __('Preis', 'eventeule'),
                 'type' => Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .eventeule-meta-price' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .eventeule-meta-price svg' => 'color: {{VALUE}}; fill: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'heading_meta_text_colors',
+            [
+                'label' => __('Text-Farben', 'eventeule'),
+                'type' => Controls_Manager::HEADING,
+                'separator' => 'before',
+            ]
+        );
+
+        $this->add_control(
+            'meta_location_text_color',
+            [
+                'label' => __('Ort', 'eventeule'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-meta-location .ee-meta-text' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'meta_date_text_color',
+            [
+                'label' => __('Datum', 'eventeule'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-meta-date .ee-meta-text' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'meta_time_text_color',
+            [
+                'label' => __('Uhrzeit', 'eventeule'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-meta-time .ee-meta-text' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'meta_price_text_color',
+            [
+                'label' => __('Preis', 'eventeule'),
+                'type' => Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .eventeule-meta-price .ee-meta-text' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -1561,7 +1614,7 @@ class EventListCardWidget extends Widget_Base
 
             if ($settings['show_location'] === 'yes' && $location) {
                 $location_classes = 'eventeule-meta-location' . $this->get_responsive_classes('hide_location_on');
-                $meta_items[] = '<span class="' . esc_attr($location_classes) . '"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> ' . esc_html($location) . '</span>';
+                $meta_items[] = '<span class="' . esc_attr($location_classes) . '"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg><span class="ee-meta-text">' . esc_html($location) . '</span></span>';
             }
 
             if ($settings['show_date'] === 'yes' && $start_date) {
@@ -1573,7 +1626,7 @@ class EventListCardWidget extends Widget_Base
                 }
                 $formatted_date = date_i18n($df, strtotime($start_date));
                 $date_classes = 'eventeule-meta-date' . $this->get_responsive_classes('hide_date_on');
-                $meta_items[] = '<span class="' . esc_attr($date_classes) . '"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/></svg> ' . esc_html($formatted_date) . '</span>';
+                $meta_items[] = '<span class="' . esc_attr($date_classes) . '"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/></svg><span class="ee-meta-text">' . esc_html($formatted_date) . '</span></span>';
             }
 
             if ($settings['show_time'] === 'yes' && $start_time) {
@@ -1582,14 +1635,14 @@ class EventListCardWidget extends Widget_Base
                 if ($end_time) {
                     $time_label .= ' – ' . esc_html($end_time);
                 }
-                $meta_items[] = '<span class="' . esc_attr($time_classes) . '"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg> ' . $time_label . '</span>';
+                $meta_items[] = '<span class="' . esc_attr($time_classes) . '"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg><span class="ee-meta-text">' . $time_label . '</span></span>';
             }
 
             if ($settings['show_price'] === 'yes') {
                 $price = get_post_meta($event_id, '_eventeule_price', true);
                 if ($price) {
                     $price_classes = 'eventeule-meta-price' . $this->get_responsive_classes('hide_price_on');
-                    $meta_items[] = '<span class="' . esc_attr($price_classes) . '"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg> ' . esc_html($price) . '</span>';
+                    $meta_items[] = '<span class="' . esc_attr($price_classes) . '"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg><span class="ee-meta-text">' . esc_html($price) . '</span></span>';
                 }
             }
 
@@ -1599,14 +1652,14 @@ class EventListCardWidget extends Widget_Base
                 echo '</div>';
             }
 
-            // Excerpt
+            // Excerpt — prefer _eventeule_short_description, fallback to WP excerpt/content
             if ($settings['show_excerpt'] === 'yes') {
                 $words = (int) ($settings['excerpt_words'] ?? 20);
-                $excerpt = wp_trim_words(
-                    wp_strip_all_tags(get_the_excerpt() ?: get_the_content()),
-                    $words,
-                    ' …'
-                );
+                $short_desc = get_post_meta($event_id, '_eventeule_short_description', true);
+                $raw = $short_desc !== ''
+                    ? $short_desc
+                    : (get_the_excerpt() ?: get_the_content());
+                $excerpt = wp_trim_words(wp_strip_all_tags($raw), $words, ' …');
                 if ($excerpt) {
                     echo '<p class="eventeule-event-excerpt">' . esc_html($excerpt) . '</p>';
                 }
@@ -1664,26 +1717,22 @@ class EventListCardWidget extends Widget_Base
                         <div class="eventeule-event-card-meta">
                             <# if (settings.show_location === 'yes') { #>
                                 <span class="eventeule-meta-location">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                                    New York
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg><span class="ee-meta-text">New York</span>
                                 </span>
                             <# } #>
                             <# if (settings.show_date === 'yes') { #>
                                 <span class="eventeule-meta-date">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/></svg>
-                                    25/01/2024
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/></svg><span class="ee-meta-text">25/01/2024</span>
                                 </span>
                             <# } #>
                             <# if (settings.show_time === 'yes') { #>
                                 <span class="eventeule-meta-time">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
-                                    19:00
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg><span class="ee-meta-text">19:00</span>
                                 </span>
                             <# } #>
                             <# if (settings.show_price === 'yes') { #>
                                 <span class="eventeule-meta-price">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
-                                    $25.00
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg><span class="ee-meta-text">$25.00</span>
                                 </span>
                             <# } #>
                         </div>
