@@ -235,10 +235,12 @@ class EventCapacityWidget extends Widget_Base
             return;
         }
 
-        $max_reg = (int) get_post_meta($event_id, '_eventeule_reg_max', true);
-        $repo    = new RegistrationRepository();
-        $booked  = $max_reg > 0 ? $repo->count_by_event($event_id) : 0;
-        $avail   = $max_reg > 0 ? max(0, $max_reg - $booked) : -1; // -1 = unlimited
+        $max_reg    = (int) get_post_meta($event_id, '_eventeule_reg_max', true);
+        $ext_count  = (int) get_post_meta($event_id, '_eventeule_reg_ext_count', true);
+        $repo       = new RegistrationRepository();
+        $internal   = $max_reg > 0 ? $repo->count_by_event($event_id) : 0;
+        $booked     = $internal + $ext_count;
+        $avail      = $max_reg > 0 ? max(0, $max_reg - $booked) : -1; // -1 = unlimited
 
         $style         = $settings['display_style']    ?? 'bar';
         $show_label    = ($settings['show_label']   ?? 'yes') === 'yes';

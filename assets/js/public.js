@@ -147,9 +147,9 @@ function showFormError(messages, msg) {
 
     // Delegate all click events
     document.addEventListener('click', function (e) {
-        // Open: click on the trigger button
+        // Open: click on the trigger button (skip <a> elements — those are external links)
         const trigger = e.target.closest('.ee-reg-popup-trigger');
-        if (trigger && !trigger.disabled) {
+        if (trigger && !trigger.disabled && trigger.tagName !== 'A') {
             const wrap    = trigger.closest('.ee-reg-popup-wrap');
             const overlay = wrap ? wrap.querySelector('.ee-reg-popup-overlay') : null;
             if (overlay) openPopup(overlay);
