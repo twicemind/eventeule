@@ -22,7 +22,6 @@ if (!defined('ABSPATH')) {
             <span class="dashicons dashicons-calendar-alt"></span>
             <div>
                 <strong>EventEule</strong>
-                <span class="ee-sidebar-version">v<?php echo esc_html(EVENTEULE_VERSION); ?></span>
             </div>
         </div>
 

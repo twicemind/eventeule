@@ -279,7 +279,7 @@ body.toplevel_page_eventeule.elementor-has-popup {
 
 .ee-app {
     display: flex;
-    margin: -10px -20px -20px -20px;
+    margin: -10px -20px -20px -10px;
     min-height: calc(100vh - 32px);
     background: var(--ee-bg);
 }
@@ -313,9 +313,9 @@ body.toplevel_page_eventeule.elementor-has-popup {
     display: block;
     font-size: 18px;
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.0;
     margin: 0;
-    font-size: 36px;
+    font-size: 32px;
     font-weight: 700;
     color: white;
 }
