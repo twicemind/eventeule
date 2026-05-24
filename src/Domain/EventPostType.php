@@ -70,7 +70,13 @@ class EventPostType
      */
     public function disable_block_editor(bool $useBlockEditor, $postType): bool
     {
-        if (is_string($postType) && $postType === self::POST_TYPE) {
+        if (!is_string($postType)) {
+            return $useBlockEditor;
+        }
+
+        // Compatibility fallback: on affected stacks the block editor can crash
+        // for core types (post/page). Keep editing available via classic editor.
+        if (in_array($postType, [self::POST_TYPE, 'post', 'page'], true)) {
             return false;
         }
 
