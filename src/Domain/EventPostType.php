@@ -74,12 +74,26 @@ class EventPostType
             return $useBlockEditor;
         }
 
-        // Compatibility fallback: on affected stacks the block editor can crash
-        // for core types (post/page). Keep editing available via classic editor.
-        if (in_array($postType, [self::POST_TYPE, 'post', 'page'], true)) {
+        if ($postType === self::POST_TYPE) {
+            return false;
+        }
+
+        // Compatibility fallback for affected stacks.
+        if ($this->should_force_classic_for_core_types() && in_array($postType, ['post', 'page'], true)) {
             return false;
         }
 
         return $useBlockEditor;
+    }
+
+    private function should_force_classic_for_core_types(): bool
+    {
+        /**
+         * Allows temporarily forcing Classic Editor for core post types.
+         *
+         * Set to false to re-enable Gutenberg for posts/pages:
+         * add_filter('eventeule_force_classic_editor_for_core', '__return_false');
+         */
+        return (bool) apply_filters('eventeule_force_classic_editor_for_core', true);
     }
 }
