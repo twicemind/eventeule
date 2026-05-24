@@ -49,15 +49,28 @@ class EventPostType
         register_post_type(self::POST_TYPE, $args);
     }
 
-    public function add_elementor_support(array $post_types): array
+    /**
+     * Elementor may pass non-array values depending on version/state.
+     * Keep this callback defensive to avoid admin fatals.
+     *
+     * @param mixed $post_types
+     */
+    public function add_elementor_support($post_types): array
     {
+        if (!is_array($post_types)) {
+            $post_types = [];
+        }
+
         $post_types[self::POST_TYPE] = self::POST_TYPE;
         return $post_types;
     }
 
-    public function disable_block_editor(bool $useBlockEditor, string $postType): bool
+    /**
+     * @param mixed $postType
+     */
+    public function disable_block_editor(bool $useBlockEditor, $postType): bool
     {
-        if ($postType === self::POST_TYPE) {
+        if (is_string($postType) && $postType === self::POST_TYPE) {
             return false;
         }
 
