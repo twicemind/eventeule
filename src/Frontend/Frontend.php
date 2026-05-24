@@ -39,8 +39,15 @@ class Frontend
     /**
      * @param array<string, string> $atts
      */
-    public function render_events_shortcode(array $atts = []): string
+    /**
+     * @param mixed $atts
+     */
+    public function render_events_shortcode($atts = []): string
     {
+        if (!is_array($atts)) {
+            $atts = [];
+        }
+
         $atts = shortcode_atts([
             'limit'         => 10,
             'featured_only' => 'false',

@@ -181,8 +181,18 @@ class RegistrationController
     /**
      * Automatically append the registration form to single event pages.
      */
-    public function append_registration_form(string $content): string
+    /**
+     * WordPress filters may occasionally pass non-string values.
+     * Keep this callback defensive to prevent editor fatals.
+     *
+     * @param mixed $content
+     */
+    public function append_registration_form($content): string
     {
+        if (!is_string($content)) {
+            $content = (string) $content;
+        }
+
         if (!is_singular('eventeule_event') || !in_the_loop() || !is_main_query()) {
             return $content;
         }
@@ -204,8 +214,15 @@ class RegistrationController
     /**
      * @param array<string, string> $atts
      */
-    public function render_registration_shortcode(array $atts = []): string
+    /**
+     * @param mixed $atts
+     */
+    public function render_registration_shortcode($atts = []): string
     {
+        if (!is_array($atts)) {
+            $atts = [];
+        }
+
         $atts    = shortcode_atts(['event_id' => 0], $atts, 'eventeule_registration');
         $eventId = (int) $atts['event_id'];
 
