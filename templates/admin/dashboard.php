@@ -479,6 +479,23 @@ if (!defined('ABSPATH')) {
                 <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="eventeule-settings-form">
                     <input type="hidden" name="action" value="eventeule_save_settings">
                     <?php wp_nonce_field('eventeule_settings'); ?>
+
+                    <div class="eventeule-section" style="margin-bottom:20px;">
+                        <h3><?php esc_html_e('Default Mail Sender', 'eventeule'); ?></h3>
+                        <p class="description"><?php esc_html_e('This email address is used as sender for registration emails.', 'eventeule'); ?></p>
+                        <label for="mail_sender_email" style="display:block; margin:8px 0 4px; font-weight:600;">
+                            <?php esc_html_e('Sender email address', 'eventeule'); ?>
+                        </label>
+                        <input
+                            type="email"
+                            id="mail_sender_email"
+                            name="mail_sender_email"
+                            value="<?php echo esc_attr($settings['mail_sender_email'] ?? get_option('admin_email', '')); ?>"
+                            class="regular-text"
+                            required
+                        >
+                    </div>
+
                     <div class="eventeule-color-grid">
                         <?php $colorFields = [
                             'primary_color'    => [__('Primary Color', 'eventeule'),    __('Main color for buttons and highlights', 'eventeule')],

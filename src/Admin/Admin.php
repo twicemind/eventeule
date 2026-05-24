@@ -519,9 +519,15 @@ class Admin
             'text_color' => '#1d2327',
             'background_color' => '#ffffff',
             'border_color' => '#dcdcde',
+            'mail_sender_email' => (string) get_option('admin_email', ''),
         ];
 
         $saved = get_option('eventeule_widget_colors', []);
+        if (!is_array($saved)) {
+            $saved = [];
+        }
+
+        $saved['mail_sender_email'] = (string) get_option('eventeule_mail_sender_email', (string) get_option('admin_email', ''));
         
         return wp_parse_args($saved, $defaults);
     }
@@ -654,7 +660,13 @@ class Admin
             'border_color' => sanitize_hex_color($_POST['border_color'] ?? ''),
         ];
 
+        $mailSenderEmail = sanitize_email(wp_unslash($_POST['mail_sender_email'] ?? ''));
+        if ($mailSenderEmail === '' || !is_email($mailSenderEmail)) {
+            $mailSenderEmail = (string) get_option('admin_email', '');
+        }
+
         update_option('eventeule_widget_colors', $colors);
+        update_option('eventeule_mail_sender_email', $mailSenderEmail);
 
         wp_redirect(add_query_arg([
             'page'    => 'eventeule',

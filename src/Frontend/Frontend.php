@@ -14,18 +14,24 @@ class Frontend
 
     public function enqueue_assets(): void
     {
+        $cssPath = EVENTEULE_PATH . 'assets/css/public.css';
+        $jsPath  = EVENTEULE_PATH . 'assets/js/public.js';
+
+        $cssVersion = file_exists($cssPath) ? (string) filemtime($cssPath) : EVENTEULE_VERSION;
+        $jsVersion  = file_exists($jsPath) ? (string) filemtime($jsPath) : EVENTEULE_VERSION;
+
         wp_enqueue_style(
             'eventeule-public',
             EVENTEULE_URL . 'assets/css/public.css',
             [],
-            EVENTEULE_VERSION
+            $cssVersion
         );
 
         wp_enqueue_script(
             'eventeule-public',
             EVENTEULE_URL . 'assets/js/public.js',
             [],
-            EVENTEULE_VERSION,
+            $jsVersion,
             true
         );
     }

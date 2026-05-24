@@ -144,14 +144,11 @@ class RegistrationsAdmin
             exit;
         }
 
-        $siteName  = get_bloginfo('name');
-        $fromEmail = get_option('admin_email');
-
         $sent = wp_mail(
             $reg['email'],
             $subject,
             $body,
-            ['From: ' . $siteName . ' <' . $fromEmail . '>', 'Content-Type: text/plain; charset=UTF-8']
+            $this->build_mail_headers()
         );
 
         wp_safe_redirect(add_query_arg($sent ? 'replied' : 'reply_error', '1', $redirect));
@@ -198,11 +195,7 @@ class RegistrationsAdmin
         $startDate     = (string) get_post_meta($eventId, '_eventeule_start_date', true);
         $location      = (string) get_post_meta($eventId, '_eventeule_location', true);
         $siteName      = get_bloginfo('name');
-        $fromEmail     = (string) get_option('admin_email');
         $adminEmail    = (string) get_post_meta($eventId, '_eventeule_reg_admin_email', true);
-        if ($adminEmail === '') {
-            $adminEmail = $fromEmail;
-        }
 
         $subject = sprintf(
             /* translators: %s = event title */
@@ -249,9 +242,40 @@ class RegistrationsAdmin
                 $reg['email'],
                 $subject,
                 $body,
-                ['From: ' . $siteName . ' <' . $fromEmail . '>', 'Content-Type: text/plain; charset=UTF-8']
+                $this->build_mail_headers($adminEmail)
             );
         }
+    }
+
+    /**
+     * Build mail headers in a way that is less likely to be blocked by SPF/DMARC.
+     *
+     * @return string[]
+     */
+    private function build_mail_headers(string $replyTo = ''): array
+    {
+        $headers = ['Content-Type: text/plain; charset=UTF-8'];
+
+        $siteName = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
+        $host = (string) wp_parse_url(home_url(), PHP_URL_HOST);
+        $host = preg_replace('/^www\./i', '', $host);
+
+        if (!empty($host)) {
+            $fromEmail = 'no-reply@' . $host;
+            if (is_email($fromEmail)) {
+                $headers[] = 'From: ' . $siteName . ' <' . $fromEmail . '>';
+            }
+        }
+
+        if ($replyTo === '') {
+            $replyTo = (string) get_option('admin_email');
+        }
+
+        if (is_email($replyTo)) {
+            $headers[] = 'Reply-To: ' . $replyTo;
+        }
+
+        return $headers;
     }
 
     public function handle_export(): void

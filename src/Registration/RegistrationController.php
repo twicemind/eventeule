@@ -77,7 +77,7 @@ class RegistrationController
                 wp_send_json_error([
                     'message' => sprintf(
                         /* translators: %s = field label */
-                        __('The field "%s" is required.', 'eventeule'),
+                        __('The field %s is required.', 'eventeule'),
                         $labels[$field] ?? $field
                     ),
                     'field' => $field,
@@ -251,9 +251,9 @@ class RegistrationController
 
         $body = '';
         if ($name !== '') {
-            $body .= sprintf(__('Dear %s,', 'eventeule'), $name) . "\n\n";
+            $body .= sprintf(__('Dear %s', 'eventeule'), $name) . "\n\n";
         }
-        $body .= sprintf(__('Your registration for "%s" has been confirmed.', 'eventeule'), $eventTitle) . "\n\n";
+        $body .= sprintf(__('Your registration for %s has been confirmed.', 'eventeule'), $eventTitle) . "\n\n";
 
         if ($startDate !== '') {
             $body .= __('Date:', 'eventeule') . ' ' . date_i18n(get_option('date_format'), strtotime($startDate));
@@ -272,9 +272,9 @@ class RegistrationController
             $body .= sprintf(__('Number of participants: %d', 'eventeule'), $participants) . "\n";
         }
 
-        $body .= "\n" . sprintf(__('Best regards,\n%s', 'eventeule'), $siteName);
+        $body .= __('Best regards', 'eventeule') . "\n" . $siteName;
 
-        $fromEmail = get_option('admin_email');
+        $fromEmail = $this->get_sender_email();
         wp_mail(
             (string) $formData['email'],
             $subject,
@@ -296,7 +296,7 @@ class RegistrationController
         $eventTitle = (string) get_the_title($eventId);
         $subject    = sprintf(__('New registration: %s', 'eventeule'), $eventTitle);
 
-        $body = sprintf(__('New registration for the event "%s":', 'eventeule'), $eventTitle) . "\n\n";
+        $body = sprintf(__('New registration for the event %s:', 'eventeule'), $eventTitle) . "\n\n";
 
         $name = trim(($formData['firstname'] ?? '') . ' ' . ($formData['lastname'] ?? ''));
         if ($name !== '') {
@@ -318,6 +318,19 @@ class RegistrationController
         $adminUrl = admin_url('admin.php?page=eventeule-registrations&event_id=' . $eventId);
         $body .= "\n" . sprintf(__('View registrations: %s', 'eventeule'), $adminUrl);
 
-        wp_mail($adminEmail, $subject, $body);
+        $siteName  = get_bloginfo('name');
+        $fromEmail = $this->get_sender_email();
+
+        wp_mail($adminEmail, $subject, $body, ['From: ' . $siteName . ' <' . $fromEmail . '>']);
+    }
+
+    private function get_sender_email(): string
+    {
+        $configured = (string) get_option('eventeule_mail_sender_email', '');
+        if ($configured !== '' && is_email($configured)) {
+            return $configured;
+        }
+
+        return (string) get_option('admin_email');
     }
 }
