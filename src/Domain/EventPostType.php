@@ -88,12 +88,14 @@ class EventPostType
 
     private function should_force_classic_for_core_types(): bool
     {
+        $default = get_option('eventeule_force_classic_editor_core', '1') !== '0';
+
         /**
          * Allows temporarily forcing Classic Editor for core post types.
          *
          * Set to false to re-enable Gutenberg for posts/pages:
          * add_filter('eventeule_force_classic_editor_for_core', '__return_false');
          */
-        return (bool) apply_filters('eventeule_force_classic_editor_for_core', true);
+        return (bool) apply_filters('eventeule_force_classic_editor_for_core', $default);
     }
 }

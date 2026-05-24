@@ -496,6 +496,21 @@ if (!defined('ABSPATH')) {
                         >
                     </div>
 
+                    <div class="eventeule-section" style="margin-bottom:20px;">
+                        <h3><?php esc_html_e('Editor Compatibility', 'eventeule'); ?></h3>
+                        <p class="description"><?php esc_html_e('Use this fallback when the WordPress block editor causes white screens for posts/pages.', 'eventeule'); ?></p>
+                        <label for="force_classic_editor_core" style="display:flex; align-items:center; gap:8px; margin-top:8px; font-weight:600;">
+                            <input
+                                type="checkbox"
+                                id="force_classic_editor_core"
+                                name="force_classic_editor_core"
+                                value="1"
+                                <?php checked(($settings['force_classic_editor_core'] ?? '1') === '1'); ?>
+                            >
+                            <?php esc_html_e('Force Classic Editor for posts and pages', 'eventeule'); ?>
+                        </label>
+                    </div>
+
                     <div class="eventeule-color-grid">
                         <?php $colorFields = [
                             'primary_color'    => [__('Primary Color', 'eventeule'),    __('Main color for buttons and highlights', 'eventeule')],
