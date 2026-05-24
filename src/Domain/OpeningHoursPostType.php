@@ -10,6 +10,7 @@ class OpeningHoursPostType
     {
         add_action('init', [$this, 'register_post_type']);
         add_filter('elementor/utils/get_public_post_types', [$this, 'add_elementor_support']);
+        add_filter('use_block_editor_for_post_type', [$this, 'disable_block_editor'], 10, 2);
     }
 
     public function register_post_type(): void
@@ -48,5 +49,14 @@ class OpeningHoursPostType
     {
         $post_types[self::POST_TYPE] = self::POST_TYPE;
         return $post_types;
+    }
+
+    public function disable_block_editor(bool $useBlockEditor, string $postType): bool
+    {
+        if ($postType === self::POST_TYPE) {
+            return false;
+        }
+
+        return $useBlockEditor;
     }
 }
