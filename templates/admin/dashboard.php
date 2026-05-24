@@ -981,6 +981,10 @@ if (!defined('ABSPATH')) {
                                 </option>
                             <?php endforeach; ?>
                         </select>
+                        <label style="display:inline-flex; align-items:center; gap:6px; font-size:13px; color:#555;">
+                            <input type="checkbox" name="show_cancelled" value="1" <?php checked(!empty($regShowCancelled)); ?>>
+                            <?php esc_html_e('Show cancelled registrations', 'eventeule'); ?>
+                        </label>
                         <button type="submit" class="button"><?php esc_html_e('Filtern', 'eventeule'); ?></button>
                     </form>
 
@@ -994,6 +998,7 @@ if (!defined('ABSPATH')) {
                         <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline;">
                             <input type="hidden" name="action"   value="eventeule_export_registrations">
                             <input type="hidden" name="event_id" value="<?php echo esc_attr($regEventId); ?>">
+                            <input type="hidden" name="show_cancelled" value="<?php echo !empty($regShowCancelled) ? '1' : '0'; ?>">
                             <?php wp_nonce_field('eventeule_export_registrations', 'eventeule_nonce'); ?>
                             <button type="submit" class="button">
                                 <span class="dashicons dashicons-download"></span>
@@ -1038,6 +1043,9 @@ if (!defined('ABSPATH')) {
                                         <?php endif; ?>
                                         <td>
                                             <strong><?php echo esc_html(trim($reg['firstname'] . ' ' . $reg['lastname'])); ?></strong>
+                                            <?php if (($reg['status'] ?? 'confirmed') !== 'confirmed'): ?>
+                                                <span class="ee-badge ee-badge--cancelled" style="margin-left:6px;"><?php esc_html_e('Cancelled', 'eventeule'); ?></span>
+                                            <?php endif; ?>
                                             <?php if (!empty($reg['email'])): ?>
                                                 <br><small class="ee-text-muted"><?php echo esc_html($reg['email']); ?></small>
                                             <?php endif; ?>

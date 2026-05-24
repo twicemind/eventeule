@@ -86,7 +86,7 @@ class RegistrationRepository
 
         $count = (int) $wpdb->get_var(
             $wpdb->prepare(
-                "SELECT COUNT(*) FROM {$this->table()} WHERE event_id = %d AND email = %s",
+                "SELECT COUNT(*) FROM {$this->table()} WHERE event_id = %d AND email = %s AND status = 'confirmed'",
                 $eventId,
                 $email
             )
@@ -98,13 +98,15 @@ class RegistrationRepository
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function get_by_event(int $eventId): array
+    public function get_by_event(int $eventId, bool $includeCancelled = false): array
     {
         global $wpdb;
 
+        $statusSql = $includeCancelled ? '' : " AND status = 'confirmed'";
+
         $results = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT * FROM {$this->table()} WHERE event_id = %d ORDER BY registered_at ASC",
+                "SELECT * FROM {$this->table()} WHERE event_id = %d{$statusSql} ORDER BY registered_at ASC",
                 $eventId
             ),
             ARRAY_A
@@ -116,15 +118,18 @@ class RegistrationRepository
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function get_all(int $limit = 200, int $offset = 0): array
+    public function get_all(int $limit = 200, int $offset = 0, bool $includeCancelled = false): array
     {
         global $wpdb;
+
+        $statusSql = $includeCancelled ? '' : "WHERE r.status = 'confirmed'";
 
         $results = $wpdb->get_results(
             $wpdb->prepare(
                 "SELECT r.*, p.post_title AS event_title
                  FROM {$this->table()} r
                  LEFT JOIN {$wpdb->posts} p ON r.event_id = p.ID
+                 {$statusSql}
                  ORDER BY r.registered_at DESC
                  LIMIT %d OFFSET %d",
                 $limit,
@@ -139,13 +144,15 @@ class RegistrationRepository
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function get_all_by_event(int $eventId, int $limit = 200, int $offset = 0): array
+    public function get_all_by_event(int $eventId, int $limit = 200, int $offset = 0, bool $includeCancelled = false): array
     {
         global $wpdb;
 
+        $statusSql = $includeCancelled ? '' : " AND status = 'confirmed'";
+
         $results = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT * FROM {$this->table()} WHERE event_id = %d ORDER BY registered_at ASC LIMIT %d OFFSET %d",
+                "SELECT * FROM {$this->table()} WHERE event_id = %d{$statusSql} ORDER BY registered_at ASC LIMIT %d OFFSET %d",
                 $eventId,
                 $limit,
                 $offset
@@ -156,17 +163,23 @@ class RegistrationRepository
         return is_array($results) ? $results : [];
     }
 
-    public function count_all(): int
+    public function count_all(bool $includeCancelled = false): int
     {
         global $wpdb;
-        return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$this->table()}");
+        if ($includeCancelled) {
+            return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$this->table()}");
+        }
+
+        return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$this->table()} WHERE status = 'confirmed'");
     }
 
-    public function count_all_by_event(int $eventId): int
+    public function count_all_by_event(int $eventId, bool $includeCancelled = false): int
     {
         global $wpdb;
+
+        $statusSql = $includeCancelled ? '' : " AND status = 'confirmed'";
         return (int) $wpdb->get_var(
-            $wpdb->prepare("SELECT COUNT(*) FROM {$this->table()} WHERE event_id = %d", $eventId)
+            $wpdb->prepare("SELECT COUNT(*) FROM {$this->table()} WHERE event_id = %d{$statusSql}", $eventId)
         );
     }
 

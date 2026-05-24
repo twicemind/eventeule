@@ -184,18 +184,19 @@ class Admin
 
         // ── Anmeldungen section ────────────────────────────────────────────
         $regEventId   = isset($_GET['event_id']) ? (int) $_GET['event_id'] : 0;
+        $regShowCancelled = isset($_GET['show_cancelled']) && $_GET['show_cancelled'] === '1';
         $regPaged     = isset($_GET['paged']) ? max(1, (int) $_GET['paged']) : 1;
         $regPerPage   = 25;
         $regOffset    = ($regPaged - 1) * $regPerPage;
 
         if ($activeSection === 'anmeldungen') {
             if ($regEventId > 0) {
-                $registrations    = $this->registrationRepository->get_all_by_event($regEventId, $regPerPage, $regOffset);
-                $regTotal         = $this->registrationRepository->count_all_by_event($regEventId);
+                $registrations    = $this->registrationRepository->get_all_by_event($regEventId, $regPerPage, $regOffset, $regShowCancelled);
+                $regTotal         = $this->registrationRepository->count_all_by_event($regEventId, $regShowCancelled);
                 $regEventTitle    = (string) get_the_title($regEventId);
             } else {
-                $registrations    = $this->registrationRepository->get_all($regPerPage, $regOffset);
-                $regTotal         = $this->registrationRepository->count_all();
+                $registrations    = $this->registrationRepository->get_all($regPerPage, $regOffset, $regShowCancelled);
+                $regTotal         = $this->registrationRepository->count_all($regShowCancelled);
                 $regEventTitle    = '';
             }
             $regTotalPages = (int) ceil($regTotal / $regPerPage);
@@ -235,6 +236,7 @@ class Admin
             $registrationEvents = [];
             $regNotice          = '';
             $regNoticeType      = 'success';
+            $regShowCancelled   = false;
         }
 
         // Pass registration repository to template

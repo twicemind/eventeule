@@ -513,7 +513,13 @@ msgid "Phone:"
 msgstr "Telefon:"
 
 msgid "Participants:"
-msgstr "Teilnehmer:"
+msgstr "Teilnehmer/in:"
+
+msgid "Show cancelled registrations"
+msgstr "Stornierte Anmeldungen anzeigen"
+
+msgid "Cancelled"
+msgstr "Storniert"
 
 msgid "Message:"
 msgstr "Nachricht:"

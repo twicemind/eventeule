@@ -43,17 +43,18 @@ class RegistrationsAdmin
         }
 
         $eventId  = isset($_GET['event_id']) ? (int) $_GET['event_id'] : 0;
+        $showCancelled = isset($_GET['show_cancelled']) && $_GET['show_cancelled'] === '1';
         $paged    = isset($_GET['paged']) ? max(1, (int) $_GET['paged']) : 1;
         $perPage  = 25;
         $offset   = ($paged - 1) * $perPage;
 
         if ($eventId > 0) {
-            $registrations = $this->repository->get_all_by_event($eventId, $perPage, $offset);
-            $total         = $this->repository->count_all_by_event($eventId);
+            $registrations = $this->repository->get_all_by_event($eventId, $perPage, $offset, $showCancelled);
+            $total         = $this->repository->count_all_by_event($eventId, $showCancelled);
             $eventTitle    = get_the_title($eventId);
         } else {
-            $registrations = $this->repository->get_all($perPage, $offset);
-            $total         = $this->repository->count_all();
+            $registrations = $this->repository->get_all($perPage, $offset, $showCancelled);
+            $total         = $this->repository->count_all($showCancelled);
             $eventTitle    = '';
         }
 
@@ -287,12 +288,13 @@ class RegistrationsAdmin
         check_admin_referer('eventeule_export_registrations', 'eventeule_nonce');
 
         $eventId = (int) ($_POST['event_id'] ?? 0);
+        $showCancelled = isset($_POST['show_cancelled']) && $_POST['show_cancelled'] === '1';
 
         if ($eventId > 0) {
-            $rows     = $this->repository->get_all_by_event($eventId, 10000, 0);
+            $rows     = $this->repository->get_all_by_event($eventId, 10000, 0, $showCancelled);
             $filename = 'anmeldungen-' . sanitize_title(get_the_title($eventId)) . '-' . date('Y-m-d') . '.csv';
         } else {
-            $rows     = $this->repository->get_all(10000, 0);
+            $rows     = $this->repository->get_all(10000, 0, $showCancelled);
             $filename = 'anmeldungen-alle-' . date('Y-m-d') . '.csv';
         }
 
