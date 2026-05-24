@@ -10,6 +10,8 @@
  * @var int      $available     -1 = unlimited, 0 = fully booked, >0 = spots left
  * @var string   $nonce
  * @var string   $ajaxUrl
+ * @var string   $cancelNotice
+ * @var string   $cancelNoticeType
  */
 
 if (!defined('ABSPATH')) {
@@ -41,6 +43,12 @@ $fieldTypes = [
         <span class="dashicons dashicons-groups"></span>
         <?php esc_html_e('Register for this event', 'eventeule'); ?>
     </h3>
+
+    <?php if (!empty($cancelNotice)): ?>
+        <p class="eventeule-registration__message eventeule-registration__message--<?php echo $cancelNoticeType === 'success' ? 'success' : 'error'; ?>">
+            <?php echo esc_html($cancelNotice); ?>
+        </p>
+    <?php endif; ?>
 
     <?php if ($maxReg > 0): ?>
         <p class="eventeule-registration__counter"
@@ -111,6 +119,19 @@ $fieldTypes = [
                     <span class="eventeule-registration__field-error" role="alert"></span>
                 </div>
             <?php endforeach; ?>
+
+            <?php if (in_array('participants', $enabledFields, true)): ?>
+                <div class="eventeule-registration__participants-extra"
+                     data-enabled="1"
+                     data-title="<?php echo esc_attr__('Additional participants', 'eventeule'); ?>"
+                     data-firstname-label="<?php echo esc_attr__('First name', 'eventeule'); ?>"
+                     data-lastname-label="<?php echo esc_attr__('Last name', 'eventeule'); ?>"
+                     data-firstname-placeholder="<?php echo esc_attr__('First name', 'eventeule'); ?>"
+                     data-lastname-placeholder="<?php echo esc_attr__('Last name', 'eventeule'); ?>"
+                     data-participant-label="<?php echo esc_attr__('Participant', 'eventeule'); ?>">
+                    <div class="eventeule-registration__participants-extra-fields"></div>
+                </div>
+            <?php endif; ?>
 
             <div class="eventeule-registration__actions">
                 <button type="submit" class="eventeule-registration__submit">

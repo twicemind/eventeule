@@ -113,6 +113,119 @@ document.addEventListener('submit', function (e) {
     });
 });
 
+function initAdditionalParticipantFields() {
+    document.querySelectorAll('.eventeule-registration__form').forEach(function (form) {
+        const participantsInput = form.querySelector('[name="participants"]');
+        const extraWrap = form.querySelector('.eventeule-registration__participants-extra');
+
+        if (!participantsInput || !extraWrap) {
+            return;
+        }
+
+        const render = function () {
+            const fieldsRoot = extraWrap.querySelector('.eventeule-registration__participants-extra-fields');
+            if (!fieldsRoot) {
+                return;
+            }
+
+            const previousValues = {};
+            fieldsRoot.querySelectorAll('[data-participant-index]').forEach(function (group) {
+                const index = parseInt(group.getAttribute('data-participant-index'), 10);
+                if (!index || index < 2) {
+                    return;
+                }
+                previousValues[index] = {
+                    firstname: (group.querySelector('input[name="participant_firstname[]"]') || {}).value || '',
+                    lastname: (group.querySelector('input[name="participant_lastname[]"]') || {}).value || '',
+                };
+            });
+
+            const count = Math.max(1, parseInt(participantsInput.value || '1', 10) || 1);
+            const extraCount = Math.max(0, count - 1);
+            fieldsRoot.innerHTML = '';
+
+            if (extraCount === 0) {
+                return;
+            }
+
+            const title = document.createElement('p');
+            title.className = 'eventeule-registration__participants-extra-title';
+            title.textContent = extraWrap.dataset.title || 'Additional participants';
+            fieldsRoot.appendChild(title);
+
+            for (let i = 2; i <= count; i++) {
+                const group = document.createElement('div');
+                group.className = 'eventeule-registration__participants-extra-group';
+                group.setAttribute('data-participant-index', String(i));
+
+                const heading = document.createElement('h4');
+                heading.textContent = (extraWrap.dataset.participantLabel || 'Participant') + ' ' + i;
+                group.appendChild(heading);
+
+                const firstField = document.createElement('div');
+                firstField.className = 'eventeule-registration__field';
+                firstField.setAttribute('data-field', 'participant_' + i + '_firstname');
+
+                const firstLabel = document.createElement('label');
+                firstLabel.htmlFor = 'eventeule_reg_extra_firstname_' + i + '_' + (form.dataset.eventId || '0');
+                firstLabel.textContent = extraWrap.dataset.firstnameLabel || 'First name';
+                firstField.appendChild(firstLabel);
+
+                const firstInput = document.createElement('input');
+                firstInput.type = 'text';
+                firstInput.id = firstLabel.htmlFor;
+                firstInput.name = 'participant_firstname[]';
+                firstInput.required = true;
+                firstInput.setAttribute('aria-required', 'true');
+                firstInput.autocomplete = 'off';
+                firstInput.placeholder = extraWrap.dataset.firstnamePlaceholder || 'First name';
+                firstInput.value = (previousValues[i] && previousValues[i].firstname) ? previousValues[i].firstname : '';
+                firstField.appendChild(firstInput);
+
+                const firstError = document.createElement('span');
+                firstError.className = 'eventeule-registration__field-error';
+                firstError.setAttribute('role', 'alert');
+                firstField.appendChild(firstError);
+
+                const lastField = document.createElement('div');
+                lastField.className = 'eventeule-registration__field';
+                lastField.setAttribute('data-field', 'participant_' + i + '_lastname');
+
+                const lastLabel = document.createElement('label');
+                lastLabel.htmlFor = 'eventeule_reg_extra_lastname_' + i + '_' + (form.dataset.eventId || '0');
+                lastLabel.textContent = extraWrap.dataset.lastnameLabel || 'Last name';
+                lastField.appendChild(lastLabel);
+
+                const lastInput = document.createElement('input');
+                lastInput.type = 'text';
+                lastInput.id = lastLabel.htmlFor;
+                lastInput.name = 'participant_lastname[]';
+                lastInput.required = true;
+                lastInput.setAttribute('aria-required', 'true');
+                lastInput.autocomplete = 'off';
+                lastInput.placeholder = extraWrap.dataset.lastnamePlaceholder || 'Last name';
+                lastInput.value = (previousValues[i] && previousValues[i].lastname) ? previousValues[i].lastname : '';
+                lastField.appendChild(lastInput);
+
+                const lastError = document.createElement('span');
+                lastError.className = 'eventeule-registration__field-error';
+                lastError.setAttribute('role', 'alert');
+                lastField.appendChild(lastError);
+
+                group.appendChild(firstField);
+                group.appendChild(lastField);
+                fieldsRoot.appendChild(group);
+            }
+        };
+
+        participantsInput.addEventListener('input', render);
+        participantsInput.addEventListener('change', render);
+        render();
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initAdditionalParticipantFields);
+
 function showFormError(messages, msg) {
     if (!messages) return;
     const p = document.createElement('p');

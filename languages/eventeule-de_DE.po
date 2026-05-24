@@ -445,6 +445,48 @@ msgstr "Deine Anmeldung für %s wurde bestätigt."
 msgid "Number of participants: %d"
 msgstr "Anzahl der Teilnehmer: %d"
 
+msgid "Additional participants"
+msgstr "Zusätzliche Teilnehmer"
+
+msgid "Participant"
+msgstr "Teilnehmer"
+
+msgid "Additional participants:"
+msgstr "Zusätzliche Teilnehmer:"
+
+msgid "Participant %d: %s %s"
+msgstr "Teilnehmer %d: %s %s"
+
+msgid "Please enter first and last name for all additional participants."
+msgstr "Bitte gib für alle zusätzlichen Teilnehmer Vor- und Nachname an."
+
+msgid "Please enter the first name for participant %d."
+msgstr "Bitte gib den Vornamen für Teilnehmer %d an."
+
+msgid "Please enter the last name for participant %d."
+msgstr "Bitte gib den Nachnamen für Teilnehmer %d an."
+
+msgid "If you want to cancel your registration, please use this link: %s"
+msgstr "Wenn du deine Anmeldung stornieren möchtest, nutze bitte diesen Link: %s"
+
+msgid "Cancellation"
+msgstr "Stornierung"
+
+msgid "Invalid cancellation link."
+msgstr "Ungültiger Stornierungslink."
+
+msgid "Registration not found."
+msgstr "Anmeldung nicht gefunden."
+
+msgid "Your registration has already been cancelled."
+msgstr "Deine Anmeldung wurde bereits storniert."
+
+msgid "Cancellation failed. Please contact the organizer."
+msgstr "Stornierung fehlgeschlagen. Bitte kontaktiere den Veranstalter."
+
+msgid "Your registration has been cancelled successfully."
+msgstr "Deine Anmeldung wurde erfolgreich storniert."
+
 msgid "Best regards"
 msgstr "Mit freundlichen Grüßen"
 

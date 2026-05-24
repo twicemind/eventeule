@@ -15,6 +15,8 @@ class RegistrationController
     {
         add_action('wp_ajax_eventeule_register', [$this, 'handle_registration']);
         add_action('wp_ajax_nopriv_eventeule_register', [$this, 'handle_registration']);
+        add_action('admin_post_eventeule_cancel_registration', [$this, 'handle_cancel_registration']);
+        add_action('admin_post_nopriv_eventeule_cancel_registration', [$this, 'handle_cancel_registration']);
         add_filter('the_content', [$this, 'append_registration_form'], 20);
         add_shortcode('eventeule_registration', [$this, 'render_registration_shortcode']);
     }
@@ -127,14 +129,38 @@ class RegistrationController
             ]);
         }
 
+        $requestedParticipants = (int) ($formData['participants'] ?? 1);
+        $additionalParticipants = [];
+        if (in_array('participants', $enabledFields, true) && $requestedParticipants > 1) {
+            $parsedParticipants = $this->parse_additional_participants($requestedParticipants);
+            if (is_wp_error($parsedParticipants)) {
+                wp_send_json_error([
+                    'message' => $parsedParticipants->get_error_message(),
+                    'field'   => (string) ($parsedParticipants->get_error_data()['field'] ?? ''),
+                ]);
+            }
+
+            $additionalParticipants = $parsedParticipants;
+            $formData['additional_participants'] = $additionalParticipants;
+        }
+
         $formData['event_id'] = $eventId;
-        $insertId = $this->repository->insert($formData);
+
+        $insertData = $formData;
+        if (!empty($additionalParticipants)) {
+            $insertData['message'] = $this->append_additional_participants_to_message(
+                (string) ($formData['message'] ?? ''),
+                $additionalParticipants
+            );
+        }
+
+        $insertId = $this->repository->insert($insertData);
 
         if ($insertId === false) {
             wp_send_json_error(['message' => __('Registration failed. Please try again.', 'eventeule')]);
         }
 
-        $this->send_confirmation_email($eventId, $formData);
+        $this->send_confirmation_email($eventId, $formData, $insertId);
         $this->send_admin_notification($eventId, $formData);
 
         $thankyouText = (string) get_post_meta($eventId, '_eventeule_reg_thankyou', true);
@@ -205,6 +231,28 @@ class RegistrationController
         $nonce          = wp_create_nonce('eventeule_register');
         $ajaxUrl        = admin_url('admin-ajax.php');
 
+        $cancelStatus = isset($_GET['eventeule_reg_cancel'])
+            ? sanitize_key(wp_unslash((string) $_GET['eventeule_reg_cancel']))
+            : '';
+        $cancelNotice = '';
+        $cancelNoticeType = '';
+        if ($cancelStatus === 'success') {
+            $cancelNotice = __('Your registration has been cancelled successfully.', 'eventeule');
+            $cancelNoticeType = 'success';
+        } elseif ($cancelStatus === 'already') {
+            $cancelNotice = __('Your registration has already been cancelled.', 'eventeule');
+            $cancelNoticeType = 'error';
+        } elseif ($cancelStatus === 'invalid') {
+            $cancelNotice = __('Invalid cancellation link.', 'eventeule');
+            $cancelNoticeType = 'error';
+        } elseif ($cancelStatus === 'not_found') {
+            $cancelNotice = __('Registration not found.', 'eventeule');
+            $cancelNoticeType = 'error';
+        } elseif ($cancelStatus === 'error') {
+            $cancelNotice = __('Cancellation failed. Please contact the organizer.', 'eventeule');
+            $cancelNoticeType = 'error';
+        }
+
         ob_start();
         $template = EVENTEULE_PATH . 'templates/public/registration-form.php';
         if (file_exists($template)) {
@@ -229,7 +277,7 @@ class RegistrationController
     /**
      * @param array<string, mixed> $formData
      */
-    private function send_confirmation_email(int $eventId, array $formData): void
+    private function send_confirmation_email(int $eventId, array $formData, int $registrationId): void
     {
         if (empty($formData['email'])) {
             return;
@@ -272,6 +320,25 @@ class RegistrationController
             $body .= sprintf(__('Number of participants: %d', 'eventeule'), $participants) . "\n";
         }
 
+        $additionalParticipants = $formData['additional_participants'] ?? [];
+        if (is_array($additionalParticipants) && !empty($additionalParticipants)) {
+            $body .= "\n" . __('Additional participants:', 'eventeule') . "\n";
+            foreach ($additionalParticipants as $index => $participant) {
+                $body .= sprintf(
+                    __('Participant %d: %s %s', 'eventeule'),
+                    $index + 2,
+                    (string) ($participant['firstname'] ?? ''),
+                    (string) ($participant['lastname'] ?? '')
+                ) . "\n";
+            }
+        }
+
+        $cancelUrl = $this->build_cancel_url($registrationId, $eventId, (string) $formData['email']);
+        $body .= "\n" . sprintf(
+            __('If you want to cancel your registration, please use this link: %s', 'eventeule'),
+            $cancelUrl
+        ) . "\n";
+
         $body .= __('Best regards', 'eventeule') . "\n" . $siteName;
 
         $fromEmail = $this->get_sender_email();
@@ -311,6 +378,20 @@ class RegistrationController
         if (!empty($formData['participants'])) {
             $body .= __('Participants:', 'eventeule') . ' ' . (int) $formData['participants'] . "\n";
         }
+
+        $additionalParticipants = $formData['additional_participants'] ?? [];
+        if (is_array($additionalParticipants) && !empty($additionalParticipants)) {
+            $body .= __('Additional participants:', 'eventeule') . "\n";
+            foreach ($additionalParticipants as $index => $participant) {
+                $body .= sprintf(
+                    __('Participant %d: %s %s', 'eventeule'),
+                    $index + 2,
+                    (string) ($participant['firstname'] ?? ''),
+                    (string) ($participant['lastname'] ?? '')
+                ) . "\n";
+            }
+        }
+
         if (!empty($formData['message'])) {
             $body .= __('Message:', 'eventeule') . ' ' . (string) $formData['message'] . "\n";
         }
@@ -332,5 +413,145 @@ class RegistrationController
         }
 
         return (string) get_option('admin_email');
+    }
+
+    public function handle_cancel_registration(): void
+    {
+        $registrationId = isset($_GET['registration_id']) ? (int) $_GET['registration_id'] : 0;
+        $token          = isset($_GET['token']) ? sanitize_text_field(wp_unslash((string) $_GET['token'])) : '';
+
+        if ($registrationId <= 0 || $token === '') {
+            $this->redirect_after_cancellation(0, 'invalid');
+        }
+
+        $registration = $this->repository->get_by_id($registrationId);
+        if (!$registration) {
+            $this->redirect_after_cancellation(0, 'not_found');
+        }
+
+        $eventId = (int) $registration['event_id'];
+
+        $expectedToken = $this->build_cancel_token(
+            (int) $registration['id'],
+            $eventId,
+            (string) ($registration['email'] ?? '')
+        );
+
+        if (!hash_equals($expectedToken, $token)) {
+            $this->redirect_after_cancellation($eventId, 'invalid');
+        }
+
+        if (($registration['status'] ?? '') === 'cancelled') {
+            $this->redirect_after_cancellation($eventId, 'already');
+        }
+
+        if (!$this->repository->cancel((int) $registration['id'])) {
+            $this->redirect_after_cancellation($eventId, 'error');
+        }
+
+        $this->redirect_after_cancellation($eventId, 'success');
+    }
+
+    private function build_cancel_url(int $registrationId, int $eventId, string $email): string
+    {
+        return add_query_arg([
+            'action'          => 'eventeule_cancel_registration',
+            'registration_id' => $registrationId,
+            'token'           => $this->build_cancel_token($registrationId, $eventId, $email),
+        ], admin_url('admin-post.php'));
+    }
+
+    private function build_cancel_token(int $registrationId, int $eventId, string $email): string
+    {
+        $payload = $registrationId . '|' . $eventId . '|' . strtolower(trim($email));
+        return hash_hmac('sha256', $payload, wp_salt('eventeule_registration_cancel'));
+    }
+
+    private function redirect_after_cancellation(int $eventId, string $status): void
+    {
+        $target = $eventId > 0 ? get_permalink($eventId) : false;
+        if (!is_string($target) || $target === '') {
+            $target = home_url('/');
+        }
+
+        wp_safe_redirect(add_query_arg(['eventeule_reg_cancel' => $status], $target));
+        exit;
+    }
+
+    /**
+     * @return array<int, array{firstname: string, lastname: string}>|\WP_Error
+     */
+    private function parse_additional_participants(int $requestedParticipants): array|\WP_Error
+    {
+        $firstnames = $_POST['participant_firstname'] ?? [];
+        $lastnames  = $_POST['participant_lastname'] ?? [];
+
+        if (!is_array($firstnames) || !is_array($lastnames)) {
+            return new \WP_Error(
+                'missing_participant_names',
+                __('Please enter first and last name for all additional participants.', 'eventeule')
+            );
+        }
+
+        $parsed = [];
+        $extraCount = max(0, $requestedParticipants - 1);
+
+        for ($i = 0; $i < $extraCount; $i++) {
+            $participantNumber = $i + 2;
+            $firstname = sanitize_text_field(wp_unslash((string) ($firstnames[$i] ?? '')));
+            $lastname  = sanitize_text_field(wp_unslash((string) ($lastnames[$i] ?? '')));
+
+            if ($firstname === '') {
+                return new \WP_Error(
+                    'missing_participant_firstname',
+                    sprintf(__('Please enter the first name for participant %d.', 'eventeule'), $participantNumber),
+                    ['field' => 'participant_' . $participantNumber . '_firstname']
+                );
+            }
+
+            if ($lastname === '') {
+                return new \WP_Error(
+                    'missing_participant_lastname',
+                    sprintf(__('Please enter the last name for participant %d.', 'eventeule'), $participantNumber),
+                    ['field' => 'participant_' . $participantNumber . '_lastname']
+                );
+            }
+
+            $parsed[] = [
+                'firstname' => $firstname,
+                'lastname'  => $lastname,
+            ];
+        }
+
+        return $parsed;
+    }
+
+    /**
+     * @param array<int, array{firstname: string, lastname: string}> $participants
+     */
+    private function append_additional_participants_to_message(string $message, array $participants): string
+    {
+        if (empty($participants)) {
+            return $message;
+        }
+
+        $lines = [];
+        foreach ($participants as $index => $participant) {
+            $lines[] = sprintf(
+                '%d. %s %s',
+                $index + 2,
+                (string) ($participant['firstname'] ?? ''),
+                (string) ($participant['lastname'] ?? '')
+            );
+        }
+
+        $block = __('Additional participants:', 'eventeule') . "\n" . implode("\n", $lines);
+        $trimmedMessage = trim($message);
+
+        if ($trimmedMessage === '') {
+            return $block;
+        }
+
+        return $trimmedMessage . "\n\n" . $block;
     }
 }

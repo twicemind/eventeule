@@ -187,4 +187,19 @@ class RegistrationRepository
 
         return is_array($row) ? $row : null;
     }
+
+    public function cancel(int $id): bool
+    {
+        global $wpdb;
+
+        $updated = $wpdb->update(
+            $this->table(),
+            ['status' => 'cancelled'],
+            ['id' => $id, 'status' => 'confirmed'],
+            ['%s'],
+            ['%d', '%s']
+        );
+
+        return $updated !== false && $updated > 0;
+    }
 }
