@@ -802,8 +802,36 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
             'email'     => 'email',
             'phone'     => 'tel',
         ];
+
+        $cancel_status = isset($_GET['eventeule_reg_cancel'])
+            ? sanitize_key(wp_unslash((string) $_GET['eventeule_reg_cancel']))
+            : '';
+        $cancel_notice = '';
+        $cancel_notice_type = '';
+        if ($cancel_status === 'success') {
+            $cancel_notice = __('Your registration has been cancelled successfully.', 'eventeule');
+            $cancel_notice_type = 'success';
+        } elseif ($cancel_status === 'already') {
+            $cancel_notice = __('Your registration has already been cancelled.', 'eventeule');
+            $cancel_notice_type = 'error';
+        } elseif ($cancel_status === 'invalid') {
+            $cancel_notice = __('Invalid cancellation link.', 'eventeule');
+            $cancel_notice_type = 'error';
+        } elseif ($cancel_status === 'not_found') {
+            $cancel_notice = __('Registration not found.', 'eventeule');
+            $cancel_notice_type = 'error';
+        } elseif ($cancel_status === 'error') {
+            $cancel_notice = __('Cancellation failed. Please contact the organizer.', 'eventeule');
+            $cancel_notice_type = 'error';
+        }
         ?>
         <div class="ee-reg-popup-wrap">
+
+            <?php if ($cancel_notice !== ''): ?>
+                <p class="eventeule-registration__message eventeule-registration__message--<?php echo $cancel_notice_type === 'success' ? 'success' : 'error'; ?>">
+                    <?php echo esc_html($cancel_notice); ?>
+                </p>
+            <?php endif; ?>
 
             <!-- ── Trigger button ──────────────────────────────────────── -->
             <div class="ee-reg-popup-trigger-wrap">
@@ -997,6 +1025,19 @@ class EventRegistrationButtonWidget extends \Elementor\Widget_Base
                                         <span class="eventeule-registration__field-error" role="alert"></span>
                                     </div>
                                 <?php endforeach; ?>
+
+                                <?php if (in_array('participants', $enabled_fields, true)): ?>
+                                    <div class="eventeule-registration__participants-extra"
+                                         data-enabled="1"
+                                         data-title="<?php echo esc_attr__('Additional participants', 'eventeule'); ?>"
+                                         data-firstname-label="<?php echo esc_attr__('First name', 'eventeule'); ?>"
+                                         data-lastname-label="<?php echo esc_attr__('Last name', 'eventeule'); ?>"
+                                         data-firstname-placeholder="<?php echo esc_attr__('First name', 'eventeule'); ?>"
+                                         data-lastname-placeholder="<?php echo esc_attr__('Last name', 'eventeule'); ?>"
+                                         data-participant-label="<?php echo esc_attr__('Participant', 'eventeule'); ?>">
+                                        <div class="eventeule-registration__participants-extra-fields"></div>
+                                    </div>
+                                <?php endif; ?>
 
                                 <div class="eventeule-registration__actions">
                                     <button type="submit" class="eventeule-registration__submit">

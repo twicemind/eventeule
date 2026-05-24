@@ -449,6 +449,8 @@ class RegistrationController
             $this->redirect_after_cancellation($eventId, 'error');
         }
 
+        $this->send_cancellation_confirmation_email($eventId, $registration);
+
         $this->redirect_after_cancellation($eventId, 'success');
     }
 
@@ -553,5 +555,44 @@ class RegistrationController
         }
 
         return $trimmedMessage . "\n\n" . $block;
+    }
+
+    /**
+     * @param array<string, mixed> $registration
+     */
+    private function send_cancellation_confirmation_email(int $eventId, array $registration): void
+    {
+        $toEmail = (string) ($registration['email'] ?? '');
+        if ($toEmail === '' || !is_email($toEmail)) {
+            return;
+        }
+
+        $eventTitle = (string) get_the_title($eventId);
+        $siteName   = get_bloginfo('name');
+        $name       = trim(((string) ($registration['firstname'] ?? '')) . ' ' . ((string) ($registration['lastname'] ?? '')));
+
+        $subject = sprintf(
+            __('Registration cancelled: %s', 'eventeule'),
+            $eventTitle
+        );
+
+        $body = '';
+        if ($name !== '') {
+            $body .= sprintf(__('Dear %s', 'eventeule'), $name) . "\n\n";
+        }
+
+        $body .= sprintf(
+            __('Your registration for %s has been cancelled.', 'eventeule'),
+            $eventTitle
+        ) . "\n\n";
+        $body .= __('Best regards', 'eventeule') . "\n" . $siteName;
+
+        $fromEmail = $this->get_sender_email();
+        wp_mail(
+            $toEmail,
+            $subject,
+            $body,
+            ['From: ' . $siteName . ' <' . $fromEmail . '>']
+        );
     }
 }

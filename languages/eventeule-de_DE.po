@@ -487,6 +487,12 @@ msgstr "Stornierung fehlgeschlagen. Bitte kontaktiere den Veranstalter."
 msgid "Your registration has been cancelled successfully."
 msgstr "Deine Anmeldung wurde erfolgreich storniert."
 
+msgid "Registration cancelled: %s"
+msgstr "Anmeldung storniert: %s"
+
+msgid "Your registration for %s has been cancelled."
+msgstr "Deine Anmeldung für %s wurde storniert."
+
 msgid "Best regards"
 msgstr "Mit freundlichen Grüßen"
 
