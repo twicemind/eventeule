@@ -11,7 +11,8 @@ document.addEventListener('submit', function (e) {
     const ajaxUrl  = form.dataset.ajaxUrl;
     const nonce    = form.dataset.nonce;
     const eventId  = form.dataset.eventId;
-    const messages = form.closest('.eventeule-registration').querySelector('.eventeule-registration__messages');
+    const registrationRoot = form.closest('.eventeule-registration') || form.closest('.ee-reg-popup-dialog') || form.parentElement;
+    const messages = registrationRoot ? registrationRoot.querySelector('.eventeule-registration__messages') : null;
     const submitBtn = form.querySelector('.eventeule-registration__submit');
     const submitText = form.querySelector('.eventeule-registration__submit-text');
     const submitSpinner = form.querySelector('.eventeule-registration__submit-spinner');
@@ -26,7 +27,7 @@ document.addEventListener('submit', function (e) {
     if (messages) messages.innerHTML = '';
 
     // Disable submit
-    submitBtn.disabled = true;
+    if (submitBtn) submitBtn.disabled = true;
     if (submitText) submitText.style.opacity = '0.5';
     if (submitSpinner) submitSpinner.style.display = '';
 
@@ -61,7 +62,7 @@ document.addEventListener('submit', function (e) {
             document.dispatchEvent(new CustomEvent('ee:registration:success', { detail: { form: form } }));
 
             // Update available spots counter
-            const counter = form.closest('.eventeule-registration').querySelector('.eventeule-registration__counter');
+            const counter = registrationRoot ? registrationRoot.querySelector('.eventeule-registration__counter') : null;
             if (counter) {
                 const remaining = data.data.remaining;
                 if (remaining === -1) {
@@ -99,14 +100,14 @@ document.addEventListener('submit', function (e) {
                 showFormError(messages, errMsg);
             }
 
-            submitBtn.disabled = false;
+            if (submitBtn) submitBtn.disabled = false;
             if (submitText) submitText.style.opacity = '';
             if (submitSpinner) submitSpinner.style.display = 'none';
         }
     })
     .catch(function () {
         showFormError(messages, 'A network error occurred. Please try again.');
-        submitBtn.disabled = false;
+        if (submitBtn) submitBtn.disabled = false;
         if (submitText) submitText.style.opacity = '';
         if (submitSpinner) submitSpinner.style.display = 'none';
     });
